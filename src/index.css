@@ -1,13 +1,132 @@
-body {
+body{
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.login-page {
+  background-image: url('background.png');
+  background-size: cover;
+  height: 102vh; 
+  margin: -2%;
+  overflow: hidden;
+}
+
+.login-box{
+  text-align: center;
+  position: relative;
+  top: 20%;
+  font-family:'Jeju Gothic', sans-serif;
+}
+
+.login-form input{
+  width: 180px;
+  height: 40px;
+  border: none;
+  font-size: 23px;
+  padding-left: 55px;
+  padding-right: 10px;
+}
+
+.icon {
+  width: 30px;
+  height: 38px;
+  position: relative;
+  left: 3%;
+  top: 12px;
+}
+
+.login-btn {
+  background-image: url('loginbutton.png');
+  width: 240px;
+  height: 40px;
+  position: relative;
+  border-color: #D55FFF;
+  border-width: 2px;
+  left: 1%;
+  font-size: 20px;
+  color: #FDE8F3;
+  font-family: 'Inter',sans-serif;
+  font-weight: 800;
+}
+
+.login-btn:hover{
+  background-color: #8339ED;
+}
+
+.signupright{
+  position: relative;
+  background-image: url('background2.png');
+  height: 102vh;
+  background-repeat: no-repeat;
+  width: 60vw;
+  margin-top: -1%;
+}
+
+.embark{
+  font-family: 'Jeju Gothic', sans-serif;
+  color: #D55FFF;
+  -webkit-text-stroke-width: 1px; 
+  -webkit-text-stroke-color: black; 
+  font-weight: bold;
+  padding-left: 5%;
+  font-size: 60px;
+  width: 20%;
+  padding-top: 18%;
+}
+
+.signupleft{
+  font-family: 'Jeju Gothic', sans-serif;
+  width: 40vw;
+  margin-left: 3%;
+}
+
+.signupinput{
+  height: 30px;
+  width: 30vw;
+  font-size: 17px;
+  padding-left: 1%;
+}
+
+.signuplabel{
+  font-size: 20px;
+}
+
+.registerbtn{
+  background-color: #8339ED;
+  height: 35px;
+  width: 30vw;
+  font-size: 20px;
+  color: white;
+  border: none;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+}
+
+.registerbtn:hover{
+  background-color: #6315d0;
+}
+
+.fade-in-word span {
+  opacity: 0;
+  animation: fadeIn 1s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Delay each word's animation */
+.fade-in-word span:nth-child(1) {
+  animation-delay: 0s;
+}
+.fade-in-word span:nth-child(2) {
+  animation-delay: 0.5s; /* Adjust delay as needed */
+}
+.fade-in-word span:nth-child(3) {
+  animation-delay: 1s; /* Adjust delay as needed */
 }
