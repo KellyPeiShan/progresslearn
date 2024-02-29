@@ -11,8 +11,10 @@ export default function SignUp () {
         username: '',
         password: '',
         field: '',
-        type:'1',
+        type:'student',
     });
+
+    const [confirmPassword, setConfirmPassword] = useState('');
     
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,6 +22,10 @@ export default function SignUp () {
     
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (formData.password !== confirmPassword) {
+            alert('Passwords do not match!');
+            return;
+          }
         try {
         const response = await fetch('http://localhost:5000/signup', {
             method: 'POST',
@@ -61,7 +67,7 @@ export default function SignUp () {
                 <br></br>
                 <label className="signuplabel">
                     Confirm Password:<br></br>
-                    <input type="password" className="signupinput"/>
+                    <input type="password" className="signupinput" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)}/>
                     <br></br>
                 </label>
                 <br></br>
