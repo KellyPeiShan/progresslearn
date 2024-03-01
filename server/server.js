@@ -31,19 +31,29 @@ app.use(bodyParser.json());
 app.post('/signup', (req, res) => {
   const { fullname, username, password, field, type } = req.body;
 
-  // Optional: Validate user input
-  // For example, check if required fields are provided, validate email format, etc.
-
-  // Insert user data into MySQL database
-  const sql = 'INSERT INTO user (username, password, full_name, field_of_interest, account_type) VALUES (?, ?, ?, ?, ?)';
-  db.query(sql, [fullname, username, password, field, type], (err, result) => {
+  // Check if username is already taken
+  const checkUsernameQuery = 'SELECT * FROM user WHERE BINARY username = ?';
+  db.query(checkUsernameQuery, [username], (err, results) => {
     if (err) {
-      console.error('Error signing up:', err);
-      return res.status(500).json({ error: 'An error occurred while signing up' });
+      console.error('Error checking username:', err);
+      return res.status(500).json({ error: 'An error occurred while checking username' });
     }
-    console.log('User signed up successfully');
-    res.status(200).json({ message: 'User signed up successfully' });
-  });
+    if (results.length > 0) {
+      // Username is already taken
+      return res.status(400).json({ error: 'Username is already taken' });
+    } else {
+        // Insert user data into MySQL database
+        const sql = 'INSERT INTO user (full_name, username, password, field_of_interest, account_type) VALUES (?, ?, ?, ?, ?)';
+        db.query(sql, [fullname, username, password, field, type], (err, result) => {
+            if (err) {
+            console.error('Error signing up:', err);
+            return res.status(500).json({ error: 'An error occurred while signing up' });
+            }
+            console.log('User signed up successfully');
+            res.status(200).json({ message: 'User signed up successfully' });
+        });
+    }
+ });
 });
 
 // Start server

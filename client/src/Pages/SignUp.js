@@ -35,10 +35,19 @@ export default function SignUp () {
             body: JSON.stringify(formData)
         });
         const data = await response.json();
-        console.log(data); // handle success or error message
-        } catch (error) {
-        console.error('Error:', error);
+        if (!response.ok) {
+            // Server responded with an error message
+            alert(data.error);
+        } else {
+            // Sign-up successful
+            alert(data.message);
+            // Optionally, redirect to a different page
         }
+    } catch (error) {
+        console.error('Error:', error);
+        // Handle network or server errors
+        alert('An error occurred. Please try again later.');
+    }
     };
 
     return (
@@ -49,31 +58,31 @@ export default function SignUp () {
                 <form onSubmit={handleSubmit}>
                 <label className="signuplabel">
                     Full Name:<br></br>
-                    <input type="text" className="signupinput" name="fullname" value={formData.fullname} onChange={handleChange}/>
+                    <input type="text" className="signupinput" name="fullname" value={formData.fullname} onChange={handleChange} required maxLength="50"/>
                     <br></br>
                 </label>
                 <br></br>
                 <label className="signuplabel">
                     Username:<br></br>
-                    <input type="text" className="signupinput" name="username" value={formData.username} onChange={handleChange}/>
+                    <input type="text" className="signupinput" name="username" value={formData.username} onChange={handleChange} required maxLength="50"/>
                     <br></br>
                 </label>
                 <br></br>
                 <label className="signuplabel">
                     Password:<br></br>
-                    <input type="password" className="signupinput" name="password" value={formData.password} onChange={handleChange}/>
+                    <input type="password" className="signupinput" name="password" value={formData.password} onChange={handleChange} required maxLength="50"/>
                     <br></br>
                 </label>
                 <br></br>
                 <label className="signuplabel">
                     Confirm Password:<br></br>
-                    <input type="password" className="signupinput" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)}/>
+                    <input type="password" className="signupinput" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required maxLength="50"/>
                     <br></br>
                 </label>
                 <br></br>
                 <label className="signuplabel">
                     Field of Interest:<br></br>
-                    <input type="text" className="signupinput" name="field" value={formData.field} onChange={handleChange}/>
+                    <input type="text" className="signupinput" name="field" value={formData.field} onChange={handleChange} maxLength="50"/>
                     <br></br>
                 </label>
                 <br></br>
