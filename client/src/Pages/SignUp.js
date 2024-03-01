@@ -19,6 +19,9 @@ export default function SignUp () {
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    const [cookies, setCookie] = useCookies(['token']); // Initialize cookie state
+    const navigate = useNavigate();
     
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -41,7 +44,10 @@ export default function SignUp () {
         } else {
             // Sign-up successful
             alert(data.message);
-            // Optionally, redirect to a different page
+             // Store the token in cookies
+             setCookie('token', data.token, { path: '/' });
+             // Redirect to a different page using navigate
+             navigate('/StudentHome');
         }
     } catch (error) {
         console.error('Error:', error);

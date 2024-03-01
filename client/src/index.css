@@ -1,5 +1,6 @@
 body{
   margin: 0;
+  background: linear-gradient(to left, #F7FAD9, white);
 }
 
 .login-page {
@@ -74,6 +75,7 @@ body{
 }
 
 .signupleft{
+  background-color: white;
   font-family: 'Jeju Gothic', sans-serif;
   width: 40vw;
   margin-left: 3%;
@@ -125,8 +127,12 @@ body{
   animation-delay: 0s;
 }
 .fade-in-word span:nth-child(2) {
-  animation-delay: 0.5s; /* Adjust delay as needed */
+  animation-delay: 0.5s;
 }
 .fade-in-word span:nth-child(3) {
-  animation-delay: 1s; /* Adjust delay as needed */
+  animation-delay: 1s; 
+}
+
+.home-page{
+  font-family:'Jeju Gothic', sans-serif;;
 }

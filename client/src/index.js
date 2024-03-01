@@ -9,6 +9,7 @@ import {CookiesProvider} from 'react-cookie';
 //import Pages
 import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
+import StudentHome from "./Pages/StudentHome";
 
 const routerConfig = [
   {
@@ -18,6 +19,10 @@ const routerConfig = [
   {
     path: "/SignUp",
     element: <SignUp />,
+  },
+  {
+    path: "/StudentHome",
+    element: <StudentHome />,
   },
 ];
 
