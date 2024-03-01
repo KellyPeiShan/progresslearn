@@ -28,6 +28,7 @@ db.connect((err) => {
 // Middleware for parsing JSON bodies
 app.use(bodyParser.json());
 
+//function to get user id from token
 const getUserIdFromToken = (token) => {
     try {
       const decoded = jwt.verify(token, '12345678'); // Verify and decode the token
@@ -71,6 +72,35 @@ app.post('/signup', (req, res) => {
     }
  });
 });
+
+// Handle login POST request
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+
+    // Check if the username exists in the database
+    const checkUsernameQuery = 'SELECT user_id, password FROM user WHERE BINARY username = ?';
+    db.query(checkUsernameQuery, [username], (err, results) => {
+        if (err) {
+            console.error('Error checking username:', err);
+            return res.status(500).json({ error: 'An error occurred while checking username' });
+        }
+        if (results.length === 0) {
+            return res.status(401).json({ error: 'Invalid username or password' }); // Username not found
+        }
+
+        // Validate the password
+        const user = results[0]; // Get the first row of the results
+        if (user.password !== password) {
+            return res.status(401).json({ error: 'Invalid username or password' }); // Incorrect password
+        }
+
+        // Generate a token using the user ID as the sign
+        const token = jwt.sign({ userId: user.user_id }, '12345678', { expiresIn: '1h' });
+
+        res.status(200).json({ message: 'Login successful', token });
+    });
+});
+
 
 // Handle request to fetch user information
 app.get('/userinfo', (req, res) => {
