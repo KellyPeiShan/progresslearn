@@ -4,6 +4,10 @@ import {useNavigate} from "react-router-dom";
 import TextField from "@mui/material/TextField";
 import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 export default function StudentHome () {
 
@@ -44,8 +48,19 @@ export default function StudentHome () {
 
     return (
         <div>
-            <div className="home-header">
-                <h1 style={{paddingTop:"2%",paddingLeft:"6%"}}>Welcome, {userInfo.fullname}</h1>
+            <div className="home-header" >
+                <div style={{ display: "flex", alignItems: "center" }}>
+                    <div style={{paddingTop:"2%",paddingLeft:"6%"}}>
+                        <h1 >Welcome, {userInfo.fullname}</h1>
+                    </div>
+                    <div className="logout">
+                        <Tooltip title="Logout">
+                        <IconButton >
+                            <LogoutIcon style={{ color: "#8339ED", fontSize: "40px" }}/>
+                        </IconButton>
+                        </Tooltip>
+                    </div>
+                </div>
                 <TextField
                     onChange={inputHandler}
                     variant="outlined"

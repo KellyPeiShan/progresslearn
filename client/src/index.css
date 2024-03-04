@@ -137,3 +137,9 @@ body{
   background: linear-gradient(to left, #F2D9FA, #FFECEC);
   margin-top: -1.5%;
 }
+
+.logout{
+  position:absolute;
+  left:95%;
+  top:2%
+}
