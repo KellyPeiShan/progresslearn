@@ -134,6 +134,6 @@ body{
 
 .home-header{
   font-family:'Jeju Gothic', sans-serif;
-  background: linear-gradient(to right, #F2D9FA, #FFECEC);
+  background: linear-gradient(to left, #F2D9FA, #FFECEC);
   margin-top: -1.5%;
 }

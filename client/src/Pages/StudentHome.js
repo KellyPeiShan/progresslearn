@@ -45,22 +45,21 @@ export default function StudentHome () {
     return (
         <div>
             <div className="home-header">
-                <h1 style={{padding:"2%"}}>Welcome, {userInfo.fullname}</h1>
+                <h1 style={{paddingTop:"2%",paddingLeft:"6%"}}>Welcome, {userInfo.fullname}</h1>
                 <TextField
-            onChange={inputHandler}
-            variant="outlined"
-            fullWidth
-            label="Search for topics or content"
-            style={{backgroundColor:"white"}}
-            size="small"
-            InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                  ),
-                }}
-            />
+                    onChange={inputHandler}
+                    variant="outlined"
+                    label="Search for new courses"
+                    style={{backgroundColor:"white", width:"85%", marginLeft:"6%",marginBottom:"2%"}}
+                    size="small"
+                    InputProps={{
+                        startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchIcon />
+                        </InputAdornment>
+                        ),
+                        }}
+                    />
             </div>
         </div>
     );
