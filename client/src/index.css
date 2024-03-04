@@ -1,6 +1,5 @@
 body{
   margin: 0;
-  background: linear-gradient(to left, #F7FAD9, white);
 }
 
 .login-page {
@@ -133,6 +132,8 @@ body{
   animation-delay: 1s; 
 }
 
-.home-page{
-  font-family:'Jeju Gothic', sans-serif;;
+.home-header{
+  font-family:'Jeju Gothic', sans-serif;
+  background: linear-gradient(to right, #F2D9FA, #FFECEC);
+  margin-top: -1.5%;
 }

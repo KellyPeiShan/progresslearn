@@ -47,7 +47,12 @@ export default function SignUp () {
              // Store the token in cookies
              setCookie('token', data.token, { path: '/' });
              // Redirect to a different page using navigate
-             navigate('/StudentHome');
+             if(formData.type === 'student'){
+                navigate('/StudentHome');
+            }
+             else{
+                navigate('/InstructorHome');
+             }
         }
     } catch (error) {
         console.error('Error:', error);
@@ -59,8 +64,7 @@ export default function SignUp () {
     return (
         <div style={{display:"flex",overflow:"hidden"}}>
             <div className="signupleft">
-                <h1 style={{fontSize:"45px",marginTop:"9%"}}>Sign Up</h1>
-                <br></br>
+                <h1 style={{fontSize:"45px",marginTop:"6%"}}>Sign Up</h1>
                 <form onSubmit={handleSubmit}>
                 <label className="signuplabel">
                     Full Name:<br></br>

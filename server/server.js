@@ -78,7 +78,7 @@ app.post('/login', (req, res) => {
     const { username, password } = req.body;
 
     // Check if the username exists in the database
-    const checkUsernameQuery = 'SELECT user_id, password FROM user WHERE BINARY username = ?';
+    const checkUsernameQuery = 'SELECT user_id, password, account_type FROM user WHERE BINARY username = ?';
     db.query(checkUsernameQuery, [username], (err, results) => {
         if (err) {
             console.error('Error checking username:', err);
@@ -96,8 +96,10 @@ app.post('/login', (req, res) => {
 
         // Generate a token using the user ID as the sign
         const token = jwt.sign({ userId: user.user_id }, '12345678', { expiresIn: '1h' });
+        // Determine account type
+        const type = user.account_type;
 
-        res.status(200).json({ message: 'Login successful', token });
+        res.status(200).json({ message: 'Login successful', token, type });
     });
 });
 

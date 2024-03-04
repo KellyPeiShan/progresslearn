@@ -32,7 +32,12 @@ export default function Login () {
                 // Store the token in cookies
                 setCookie('token', data.token, { path: '/' });
                 // Redirect to a different page
-                navigate('/StudentHome');
+                if(data.type === 'student'){
+                    navigate('/StudentHome');
+                }
+                else{
+                    navigate('/InstructorHome');
+                }
             }
         } catch (error) {
             console.error('Error:', error);

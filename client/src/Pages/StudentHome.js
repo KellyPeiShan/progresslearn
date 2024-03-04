@@ -1,11 +1,23 @@
 import {React, useState, useEffect} from "react";
 import { useCookies } from "react-cookie";
 import {useNavigate} from "react-router-dom";
+import TextField from "@mui/material/TextField";
+import SearchIcon from '@mui/icons-material/Search';
+import InputAdornment from '@mui/material/InputAdornment';
 
 export default function StudentHome () {
 
+    //for user info
     const [userInfo, setUserInfo] = useState('');
     const [cookies] = useCookies(['token']);
+
+    //for searchbar
+    const [inputText, setInputText] = useState("");
+    let inputHandler = (e) => {
+      //convert input text to lower case
+      var lowerCase = e.target.value.toLowerCase();
+      setInputText(lowerCase);
+    };
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -31,8 +43,25 @@ export default function StudentHome () {
     }, [cookies.token]);
 
     return (
-        <div className="home-page">
-            <h1>Welcome, {userInfo.fullname}</h1>
+        <div>
+            <div className="home-header">
+                <h1 style={{padding:"2%"}}>Welcome, {userInfo.fullname}</h1>
+                <TextField
+            onChange={inputHandler}
+            variant="outlined"
+            fullWidth
+            label="Search for topics or content"
+            style={{backgroundColor:"white"}}
+            size="small"
+            InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                  ),
+                }}
+            />
+            </div>
         </div>
     );
 };
