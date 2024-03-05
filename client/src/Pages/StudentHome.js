@@ -50,7 +50,7 @@ export default function StudentHome () {
         <div>
             <div className="home-header" >
                 <div style={{ display: "flex", alignItems: "center" }}>
-                    <div style={{paddingTop:"2%",paddingLeft:"6%"}}>
+                    <div style={{paddingTop:"2%",paddingLeft:"5%"}}>
                         <h1 >Welcome, {userInfo.fullname}</h1>
                     </div>
                     <div className="logout">
@@ -65,7 +65,7 @@ export default function StudentHome () {
                     onChange={inputHandler}
                     variant="outlined"
                     label="Search for new courses"
-                    style={{backgroundColor:"white", width:"85%", marginLeft:"6%",marginBottom:"2%"}}
+                    style={{backgroundColor:"white", width:"90%", marginLeft:"5%",marginBottom:"2%"}}
                     size="small"
                     InputProps={{
                         startAdornment: (
@@ -75,6 +75,13 @@ export default function StudentHome () {
                         ),
                         }}
                     />
+            </div>
+            {/* List of student's course */}
+            <div className="mycourses">
+                <p style={{fontSize:"25px", fontWeight:"500"}}>My Courses</p>
+                <div className="courselist">
+                    
+                </div>
             </div>
         </div>
     );
