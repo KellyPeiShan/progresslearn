@@ -105,7 +105,7 @@ app.post('/login', (req, res) => {
 
 
 // Handle request to fetch user information
-app.get('/userinfo', (req, res) => {
+app.get('/studentinfo', (req, res) => {
     const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
     const userId = getUserIdFromToken(token); // Get user ID from token
     if (!userId) {
@@ -123,7 +123,28 @@ app.get('/userinfo', (req, res) => {
             return res.status(404).json({ error: 'User not found' }); // User not found in database
         }
         const fullname = results[0].full_name; // Get the first row of the results
-        res.status(200).json({fullname}); // Send user information to the client
+
+        // Fetch course information based on student's enrollment
+        const getCourseInfoQuery = `
+        SELECT 
+            course.course_id, 
+            course.course_title, 
+            course.course_field, 
+            enrollment.progress,
+            (SELECT COUNT(topic.course_id) FROM topic WHERE topic.course_id = course.course_id) AS max_progress
+        FROM 
+            course 
+        INNER JOIN 
+            enrollment ON course.course_id = enrollment.course_id
+        WHERE 
+            enrollment.student_id = ?`;        
+        db.query(getCourseInfoQuery, [userId], (err, courseResults) => {
+            if (err) {
+                console.error('Error fetching course information:', err);
+                return res.status(500).json({ error: 'An error occurred while fetching course information' });
+            }
+            res.status(200).json({ fullname, courses: courseResults }); // Send user and course information to the client
+        });
     });
 });
 

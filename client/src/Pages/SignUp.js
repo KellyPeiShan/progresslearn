@@ -2,7 +2,7 @@ import {React, useState} from "react";
 import { useCookies } from "react-cookie";
 import {useNavigate} from "react-router-dom";
 import Typewriter from "typewriter-effect";
-import learn from "./learnpng.png";
+import learn from "../Images/learnpng.png";
 
 export default function SignUp () {
 
