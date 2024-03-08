@@ -15,6 +15,7 @@ import computingimg from '../Images/computing.png';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import waveimg from '../Images/wave.png'
 
 function LinearProgressWithLabel({ course }) {
     const percentage = (course.progress / course.max_progress) * 100;
@@ -178,6 +179,10 @@ export default function StudentHome () {
                         </Box>
                      ))}
                 </div>
+            </div>
+             {/* Image sticky at the bottom right */}
+            <div id="waveimg">
+                <img src={waveimg} alt="Wave" style={{ width: '300px', height: '150px' }} />
             </div>
         </div>
     );

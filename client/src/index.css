@@ -171,3 +171,10 @@ body{
   margin-top: 0%;
   margin-left: 1%;
 }
+
+#waveimg {
+  position: fixed;
+  bottom: 0px; /* Adjust the distance from the bottom as needed */
+  right: 0px; /* Adjust the distance from the right as needed */
+  z-index: 1000; /* Ensure it's above other content */
+}
