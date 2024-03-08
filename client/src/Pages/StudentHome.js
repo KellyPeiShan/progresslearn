@@ -142,6 +142,10 @@ export default function StudentHome () {
         }
     };
 
+    const handleBack = () => {
+        setSearchSubmitted(false);
+    }
+
     //logout function
     const handleLogout = () => {
         //ask for confirmation
@@ -190,7 +194,7 @@ export default function StudentHome () {
             {/* Conditional rendering based on whether search is submitted */}
             {searchSubmitted ? (
              <div className="homepagediv">
-                <p style={{ fontSize: "25px", fontWeight: "500" }}>Search Results</p>
+                <p style={{ fontSize: "25px", fontWeight: "500" }}>Search Results&nbsp;&nbsp;&nbsp;<u onClick={handleBack} style={{fontSize:"15px", color:"#8339ED"}}>Back to My Courses</u></p>
                 <div className="searchresults">
                     {searchResults.map(result => (
                         <><CourseComponent key={result.course_id} course={result} /><br></br></>
