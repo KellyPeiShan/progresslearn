@@ -84,14 +84,6 @@ export default function StudentHome () {
     const [cookies] = useCookies(['token']);
     const [courses, setCourses] = useState([]);
 
-    //for searchbar
-    const [inputText, setInputText] = useState("");
-    let inputHandler = (e) => {
-      //convert input text to lower case
-      var lowerCase = e.target.value.toLowerCase();
-      setInputText(lowerCase);
-    };
-
     //fetch student info
     useEffect(() => {
         const fetchStudentInfo = async () => {
@@ -116,6 +108,39 @@ export default function StudentHome () {
 
         fetchStudentInfo();
     }, [cookies.token]);
+
+    //for searchbar
+    const [inputText, setInputText] = useState("");
+    const [searchSubmitted, setSearchSubmitted] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
+    let inputHandler = (e) => {
+      //convert input text to lower case
+      var lowerCase = e.target.value.toLowerCase();
+      setInputText(lowerCase);
+    };
+    //search query
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSearchSubmitted(true); // Set search submitted flag
+        try {
+            // Perform search based on input text
+            const response = await fetch(`http://localhost:5000/searchCourses?query=${inputText}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${cookies.token}`
+                }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                // Set search results
+                setSearchResults(data.results);
+            } else {
+                console.error('Error fetching search results:', data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
 
     //logout function
     const handleLogout = () => {
@@ -145,6 +170,7 @@ export default function StudentHome () {
                         </Tooltip>
                     </div>
                 </div>
+                <form onSubmit={handleSubmit}>
                 <TextField
                     onChange={inputHandler}
                     variant="outlined"
@@ -159,7 +185,20 @@ export default function StudentHome () {
                         ),
                         }}
                     />
+                </form>
             </div>
+            {/* Conditional rendering based on whether search is submitted */}
+            {searchSubmitted ? (
+             <div className="homepagediv">
+                <p style={{ fontSize: "25px", fontWeight: "500" }}>Search Results</p>
+                <div className="searchresults">
+                    {searchResults.map(result => (
+                        <><CourseComponent key={result.course_id} course={result} /><br></br></>
+                    ))}
+                </div>
+             </div>
+         ) : (
+            <div>
             {/* List of student's course */}
             <div className="homepagediv">
                 <p style={{fontSize:"25px", fontWeight:"500"}}>My Courses</p>
@@ -180,10 +219,13 @@ export default function StudentHome () {
                      ))}
                 </div>
             </div>
+            </div>
+            )}
+
              {/* Image sticky at the bottom right */}
             <div id="waveimg">
                 <img src={waveimg} alt="Wave" style={{ width: '300px', height: '150px' }} />
             </div>
-        </div>
+        </div> 
     );
 };

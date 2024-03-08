@@ -148,6 +148,50 @@ app.get('/studentinfo', (req, res) => {
     });
 });
 
+// Handle request to search for new courses
+app.get('/searchCourses', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+    const userId = getUserIdFromToken(token); // Get user ID from token
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+    }
+
+    const query = req.query.query; // Get the search query from the request
+
+    // Query to search for courses matching the query in course_title
+    const searchQuery = 'SELECT * FROM course WHERE course_title LIKE ?';
+    // Query to find course IDs that the user has already enrolled in
+    const enrolledCoursesQuery = 'SELECT course_id FROM enrollment WHERE student_id = ?';
+
+    // Execute the queries
+    db.query(searchQuery, [`%${query}%`], (err, searchResults) => {
+        if (err) {
+            console.error('Error searching for courses:', err);
+            return res.status(500).json({ error: 'An error occurred while searching for courses' });
+        }
+
+        // Extract course IDs from the search results
+        const enrolledCourses = searchResults.map(course => course.course_id);
+
+        // Execute the query to find enrolled courses for the user
+        db.query(enrolledCoursesQuery, [userId], (enrollErr, enrolledCourseIds) => {
+            if (enrollErr) {
+                console.error('Error fetching enrolled courses:', enrollErr);
+                return res.status(500).json({ error: 'An error occurred while fetching enrolled courses' });
+            }
+
+            // Extract course IDs from the enrolled courses query results
+            const enrolledIds = enrolledCourseIds.map(enrollment => enrollment.course_id);
+
+            // Filter out courses that the user has already enrolled in
+            const availableCourses = searchResults.filter(course => !enrolledIds.includes(course.course_id));
+
+            res.status(200).json({ results: availableCourses });
+        });
+    });
+});
+
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
