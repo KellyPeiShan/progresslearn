@@ -105,7 +105,7 @@ app.post('/login', (req, res) => {
 
 
 // Handle request to fetch user information
-app.get('/userinfo', (req, res) => {
+app.get('/studentinfo', (req, res) => {
     const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
     const userId = getUserIdFromToken(token); // Get user ID from token
     if (!userId) {
@@ -123,9 +123,96 @@ app.get('/userinfo', (req, res) => {
             return res.status(404).json({ error: 'User not found' }); // User not found in database
         }
         const fullname = results[0].full_name; // Get the first row of the results
-        res.status(200).json({fullname}); // Send user information to the client
+
+        // Fetch course information based on student's enrollment
+        const getCourseInfoQuery = `
+        SELECT 
+            course.course_id, 
+            course.course_title, 
+            course.course_field, 
+            enrollment.progress,
+            (SELECT COUNT(topic.course_id) FROM topic WHERE topic.course_id = course.course_id) AS max_progress
+        FROM 
+            course 
+        INNER JOIN 
+            enrollment ON course.course_id = enrollment.course_id
+        WHERE 
+            enrollment.student_id = ?`;        
+        db.query(getCourseInfoQuery, [userId], (err, courseResults) => {
+            if (err) {
+                console.error('Error fetching course information:', err);
+                return res.status(500).json({ error: 'An error occurred while fetching course information' });
+            }
+            res.status(200).json({ fullname, courses: courseResults }); // Send user and course information to the client
+        });
     });
 });
+
+// Handle request to search for new courses
+app.get('/searchCourses', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+    const userId = getUserIdFromToken(token); // Get user ID from token
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+    }
+
+    const query = req.query.query; // Get the search query from the request
+
+    // Query to search for courses matching the query in course_title
+    const searchQuery = 'SELECT * FROM course WHERE course_title LIKE ?';
+    // Query to find course IDs that the user has already enrolled in
+    const enrolledCoursesQuery = 'SELECT course_id FROM enrollment WHERE student_id = ?';
+
+    // Execute the queries
+    db.query(searchQuery, [`%${query}%`], (err, searchResults) => {
+        if (err) {
+            console.error('Error searching for courses:', err);
+            return res.status(500).json({ error: 'An error occurred while searching for courses' });
+        }
+
+        // Extract course IDs from the search results
+        const enrolledCourses = searchResults.map(course => course.course_id);
+
+        // Execute the query to find enrolled courses for the user
+        db.query(enrolledCoursesQuery, [userId], (enrollErr, enrolledCourseIds) => {
+            if (enrollErr) {
+                console.error('Error fetching enrolled courses:', enrollErr);
+                return res.status(500).json({ error: 'An error occurred while fetching enrolled courses' });
+            }
+
+            // Extract course IDs from the enrolled courses query results
+            const enrolledIds = enrolledCourseIds.map(enrollment => enrollment.course_id);
+
+            // Filter out courses that the user has already enrolled in
+            const availableCourses = searchResults.filter(course => !enrolledIds.includes(course.course_id));
+
+            res.status(200).json({ results: availableCourses });
+        });
+    });
+});
+
+// Handle enrollment
+app.post('/enroll', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const userId = getUserIdFromToken(token);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  
+    const courseId = req.body.courseId; // Assuming courseId is sent in the request body
+  
+    const enrollQuery = 'INSERT INTO enrollment (student_id, course_id, progress) VALUES (?, ?, ?)';
+    const values = [userId, courseId, 0];
+  
+    db.query(enrollQuery, values, (err, result) => {
+      if (err) {
+        console.error('Error enrolling:', err);
+        return res.status(500).json({ error: 'An error occurred while enrolling in the course' });
+      }
+      res.status(200).json({ message: 'Enrolled successfully.' });
+    });
+  });
+
 
 // Start server
 app.listen(PORT, () => {

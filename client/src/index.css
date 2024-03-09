@@ -137,3 +137,44 @@ body{
   background: linear-gradient(to left, #F2D9FA, #FFECEC);
   margin-top: -1.5%;
 }
+
+.logout{
+  position:absolute;
+  left:92.5%;
+  top:3%
+}
+
+.homepagediv{
+  margin-left: 5%;
+  font-family: 'Inter', sans-serif;
+}
+
+.courselist {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap; /* Prevents wrapping of items */
+  height: 220px;
+}
+
+.coursecomponent {
+  flex: 0 0 auto; /* Ensure items don't grow or shrink */
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adjust values as needed */
+  width: 300px;
+  height: 180px;
+  margin-right: 35px;
+  margin-left: 5px;
+}
+
+.coursetitle{
+  margin-top: 0%;
+  margin-left: 1%;
+}
+
+#waveimg {
+  position: fixed;
+  bottom: 0px; /* Adjust the distance from the bottom as needed */
+  right: 0px; /* Adjust the distance from the right as needed */
+  z-index: 1000; /* Ensure it's above other content */
+}

@@ -2,8 +2,8 @@ import {React, useState} from "react";
 import { useCookies } from "react-cookie";
 import {useNavigate} from "react-router-dom";
 import Typewriter from "typewriter-effect";
-import usernameicon from './usernameicon.png';
-import passwordicon from './Lock.png';
+import usernameicon from '../Images/usernameicon.png';
+import passwordicon from '../Images/Lock.png';
 
 export default function Login () {
 
@@ -56,10 +56,10 @@ export default function Login () {
             <br></br>
             <form className="login-form" onSubmit={handleSubmit}>
                 <img src={usernameicon} className="icon" alt="Username"/>
-                <input type="text" placeholder="    Username" value={username} onChange={(e) => setUsername(e.target.value)}></input>
+                <input type="text" placeholder="     Username" value={username} onChange={(e) => setUsername(e.target.value)}></input>
                 <br></br><br></br>
                 <img src={passwordicon} className="icon" alt="Password" />
-                <input type="password" placeholder="    Password" value={password} onChange={(e) => setPassword(e.target.value)}></input>
+                <input type="password" placeholder="     Password" value={password} onChange={(e) => setPassword(e.target.value)}></input>
                 <br></br><br></br><br></br>
                 <button className="login-btn" type="submit">LOGIN</button>
             </form>
