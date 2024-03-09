@@ -16,7 +16,9 @@ import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import waveimg from '../Images/wave.png'
+import Modal from '@mui/material/Modal';
 
+//student progress component
 function LinearProgressWithLabel({ course }) {
     const percentage = (course.progress / course.max_progress) * 100;
     return (
@@ -45,7 +47,8 @@ function LinearProgressWithLabel({ course }) {
     );
 }
 
-const CourseComponent = ({ course }) => {
+//course component
+const CourseComponent = ({ course , onCourseClick }) => {
     let courseImage = '';
 
     // Determine image based on course field
@@ -68,11 +71,23 @@ const CourseComponent = ({ course }) => {
     }
 
     return ( 
-     <div className="coursecomponent">
+     <div className="coursecomponent" onClick={() => onCourseClick(course)}>
         <img src={courseImage} width="300px" height="120px"></img>
         <p className="coursetitle">{course.course_title}</p>
      </div>
     );
+  };
+
+  //style for enrollment pop up
+  const boxstyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p:4,
   };
 
 export default function StudentHome () {
@@ -141,10 +156,28 @@ export default function StudentHome () {
             console.error('Error:', error);
         }
     };
-
+    //back to my course 
     const handleBack = () => {
         setSearchSubmitted(false);
     }
+
+    //for enrollment
+    const [showModal, setShowModal] = useState(false);
+    const [selectedCourse, setSelectedCourse] = useState(null);
+
+    const handleCourseClick = (course) => {
+        setSelectedCourse(course);
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setSelectedCourse(null);
+    };
+
+    const handleEnroll = () => {
+        // Implement enrollment logic here
+    };
 
     //logout function
     const handleLogout = () => {
@@ -197,9 +230,18 @@ export default function StudentHome () {
                 <p style={{ fontSize: "25px", fontWeight: "500" }}>Search Results&nbsp;&nbsp;&nbsp;<u onClick={handleBack} style={{fontSize:"15px", color:"#8339ED"}}>Back to My Courses</u></p>
                 <div className="searchresults">
                     {searchResults.map(result => (
-                        <><CourseComponent key={result.course_id} course={result} /><br></br></>
+                        <><CourseComponent key={result.course_id} course={result}  onCourseClick={handleCourseClick}/><br></br></>
                     ))}
                 </div>
+                {showModal && selectedCourse && (
+                <Modal open={showModal} onClose={handleCloseModal}>
+                    <Box sx={boxstyle}>
+                    <h2 style={{margin:'0px', borderBottom:'1px solid black'}}>{selectedCourse.course_title}</h2>
+                    <p>{selectedCourse.description}</p>
+                    <button onClick={handleEnroll} className="registerbtn" style={{width:"30%", marginLeft:"33%", marginTop:"10px"}}>Enroll</button>
+                    </Box>
+                </Modal>
+            )}
              </div>
          ) : (
             <div>
