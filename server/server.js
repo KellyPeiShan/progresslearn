@@ -191,6 +191,28 @@ app.get('/searchCourses', (req, res) => {
     });
 });
 
+// Handle enrollment
+app.post('/enroll', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const userId = getUserIdFromToken(token);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  
+    const courseId = req.body.courseId; // Assuming courseId is sent in the request body
+  
+    const enrollQuery = 'INSERT INTO enrollment (student_id, course_id, progress) VALUES (?, ?, ?)';
+    const values = [userId, courseId, 0];
+  
+    db.query(enrollQuery, values, (err, result) => {
+      if (err) {
+        console.error('Error enrolling:', err);
+        return res.status(500).json({ error: 'An error occurred while enrolling in the course' });
+      }
+      res.status(200).json({ message: 'Enrolled successfully.' });
+    });
+  });
+
 
 // Start server
 app.listen(PORT, () => {

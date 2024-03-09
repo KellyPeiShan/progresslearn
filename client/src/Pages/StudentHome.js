@@ -175,9 +175,29 @@ export default function StudentHome () {
         setSelectedCourse(null);
     };
 
-    const handleEnroll = () => {
-        // Implement enrollment logic here
-    };
+    const handleEnroll = async (courseId) => {
+        try {
+          const response = await fetch('http://localhost:5000/enroll', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${cookies.token}`
+            },
+            body: JSON.stringify({ courseId })
+          });
+          const data = await response.json();
+          if (response.ok) {
+            alert(data.message); // Enrollment successful
+            handleCloseModal();//close modal
+            window.location.reload();
+          } else {
+            alert(data.error); // Error message from backend
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('An error occurred. Please try again later.');
+        }
+      };
 
     //logout function
     const handleLogout = () => {
@@ -238,7 +258,7 @@ export default function StudentHome () {
                     <Box sx={boxstyle}>
                     <h2 style={{margin:'0px', borderBottom:'1px solid black'}}>{selectedCourse.course_title}</h2>
                     <p>{selectedCourse.description}</p>
-                    <button onClick={handleEnroll} className="registerbtn" style={{width:"30%", marginLeft:"33%", marginTop:"10px"}}>Enroll</button>
+                    <button onClick={() => handleEnroll(selectedCourse.course_id)} className="registerbtn" style={{width:"30%", marginLeft:"33%", marginTop:"10px"}}>Enroll</button>
                     </Box>
                 </Modal>
             )}
