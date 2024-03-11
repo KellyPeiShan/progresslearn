@@ -213,6 +213,38 @@ app.post('/enroll', (req, res) => {
     });
   });
 
+  // Handle request to fetch user information
+app.get('/instructorinfo', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+    const userId = getUserIdFromToken(token); // Get user ID from token
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+    }
+
+    // Fetch user information from the database using the user ID
+    const getFullNameQuery = 'SELECT full_name FROM user WHERE user_id = ?';
+    db.query(getFullNameQuery, [userId], (err, results) => {
+        if (err) {
+            console.error('Error fetching user information:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching user information' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'User not found' }); // User not found in database
+        }
+        const fullname = results[0].full_name; // Get the first row of the results
+
+        // Fetch course information based on instructor id
+        const getCourseInfoQuery = `SELECT * FROM course WHERE instructor_id = ?`;        
+        db.query(getCourseInfoQuery, [userId], (err, courseResults) => {
+            if (err) {
+                console.error('Error fetching course information:', err);
+                return res.status(500).json({ error: 'An error occurred while fetching course information' });
+            }
+            res.status(200).json({ fullname, courses: courseResults }); // Send user and course information to the client
+        });
+    });
+});
+
 
 // Start server
 app.listen(PORT, () => {

@@ -153,7 +153,7 @@ body{
   display: flex;
   overflow-x: auto;
   white-space: nowrap; /* Prevents wrapping of items */
-  height: 220px;
+  height: 230px;
 }
 
 .coursecomponent {
@@ -165,6 +165,7 @@ body{
   height: 180px;
   margin-right: 35px;
   margin-left: 5px;
+  margin-bottom: 30px;
 }
 
 .coursetitle{
@@ -177,4 +178,9 @@ body{
   bottom: 0px; /* Adjust the distance from the bottom as needed */
   right: 0px; /* Adjust the distance from the right as needed */
   z-index: 1000; /* Ensure it's above other content */
+}
+
+.flexcourselist {
+  display: flex;
+  flex-wrap: wrap;
 }
