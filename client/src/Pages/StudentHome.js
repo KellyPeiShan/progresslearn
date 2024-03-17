@@ -7,20 +7,22 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import LogoutIcon from '@mui/icons-material/Logout';
-import businessimg from '../Images/business.png';
-import artimg from '../Images/art.png';
-import languageimg from '../Images/language.png';
-import scienceimg from '../Images/science.png';
-import computingimg from '../Images/computing.png';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import waveimg from '../Images/wave.png'
 import Modal from '@mui/material/Modal';
+import CourseComponent from "../Components/CourseComponent";
+import boxStyle from "../Components/boxstyle";
 
 //student progress component
 function LinearProgressWithLabel({ course }) {
-    const percentage = (course.progress / course.max_progress) * 100;
+    var percentage;
+    if(course.max_progress === 0){
+        percentage = 0;
+    }else{
+    percentage = (course.progress / course.max_progress) * 100;
+    }
     return (
         <div>
             <p>{course.course_title}</p>
@@ -46,49 +48,6 @@ function LinearProgressWithLabel({ course }) {
         </div>
     );
 }
-
-//course component
-const CourseComponent = ({ course , onCourseClick }) => {
-    let courseImage = '';
-
-    // Determine image based on course field
-    switch (course.course_field) {
-        case 'business':
-            courseImage = businessimg; 
-            break;
-        case 'art':
-            courseImage = artimg; 
-            break;
-        case 'language':
-            courseImage = languageimg;
-            break;
-        case 'science':
-            courseImage = scienceimg; 
-            break;
-        case 'computing':
-            courseImage = computingimg;
-            break;
-    }
-
-    return ( 
-     <div className="coursecomponent" onClick={() => onCourseClick(course)}>
-        <img src={courseImage} width="300px" height="120px"></img>
-        <p className="coursetitle">{course.course_title}</p>
-     </div>
-    );
-  };
-
-  //style for enrollment pop up
-  const boxstyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    p:4,
-  };
 
 export default function StudentHome () {
 
@@ -248,17 +207,17 @@ export default function StudentHome () {
             {searchSubmitted ? (
              <div className="homepagediv">
                 <p style={{ fontSize: "25px", fontWeight: "500" }}>Search Results&nbsp;&nbsp;&nbsp;<u onClick={handleBack} style={{fontSize:"15px", color:"#8339ED"}}>Back to My Courses</u></p>
-                <div className="searchresults">
+                <div className="flexcourselist">
                     {searchResults.map(result => (
-                        <><CourseComponent key={result.course_id} course={result}  onCourseClick={handleCourseClick}/><br></br></>
+                        <><CourseComponent key={result.course_id} course={result}  onCourseClick={handleCourseClick}/></>
                     ))}
                 </div>
                 {showModal && selectedCourse && (
                 <Modal open={showModal} onClose={handleCloseModal}>
-                    <Box sx={boxstyle}>
+                    <Box sx={boxStyle}>
                     <h2 style={{margin:'0px', borderBottom:'1px solid black'}}>{selectedCourse.course_title}</h2>
                     <p>{selectedCourse.description}</p>
-                    <button onClick={() => handleEnroll(selectedCourse.course_id)} className="registerbtn" style={{width:"30%", marginLeft:"33%", marginTop:"10px"}}>Enroll</button>
+                    <button onClick={() => handleEnroll(selectedCourse.course_id)} className="purplebtnstyle" style={{width:"30%", marginLeft:"33%", marginTop:"10px"}}>Enroll</button>
                     </Box>
                 </Modal>
             )}
