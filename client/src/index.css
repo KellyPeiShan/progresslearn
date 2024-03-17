@@ -184,3 +184,26 @@ body{
   display: flex;
   flex-wrap: wrap;
 }
+
+.purplebtnstyle{
+  background-color: #8339ED;
+  font-size: 20px;
+  color: white;
+  border: none;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+}
+
+.newcourseform input,select{
+ position: absolute;
+ left: 38%;
+ width: 55%;
+}
+
+.blendbtn{
+  background: linear-gradient(to left, #F2D9FA, #FFECEC);
+  border: none;
+  border-radius: 8px;
+  height: 30px;
+  font-size: 17px;
+}

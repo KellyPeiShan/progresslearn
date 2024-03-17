@@ -245,6 +245,32 @@ app.get('/instructorinfo', (req, res) => {
     });
 });
 
+// Handle course creation
+app.post('/createCourse', (req, res) => {
+    // Extract user ID from the authorization token
+    const token = req.headers.authorization.split(' ')[1];
+    const userId = getUserIdFromToken(token);
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Extract course details from the request body
+    const { title, description, field } = req.body;
+
+    // Insert new course into the database
+    const createCourseQuery = 'INSERT INTO course (course_title, description, course_field, instructor_id) VALUES (?, ?, ?, ?)';
+    const values = [title, description, field, userId];
+
+    db.query(createCourseQuery, values, (err, result) => {
+        if (err) {
+            console.error('Error creating course:', err);
+            return res.status(500).json({ error: 'An error occurred while creating the course' });
+        }
+        res.status(200).json({ message: 'Course created successfully.' });
+    });
+});
+
+
 
 // Start server
 app.listen(PORT, () => {
