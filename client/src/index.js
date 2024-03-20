@@ -11,6 +11,7 @@ import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
 import StudentHome from "./Pages/StudentHome";
 import InstructorHome from "./Pages/InstructorHome";
+import InstructorDashboard from "./Pages/InstructorDashboard";
 
 const routerConfig = [
   {
@@ -28,6 +29,10 @@ const routerConfig = [
   {
     path: "/InstructorHome",
     element: <InstructorHome />,
+  },
+  {
+    path:"/Instructor/Dashboard/Course/:id" ,
+    element:<InstructorDashboard />
   },
 ];
 

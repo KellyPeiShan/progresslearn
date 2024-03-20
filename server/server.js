@@ -4,6 +4,8 @@ const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -267,6 +269,86 @@ app.post('/createCourse', (req, res) => {
             return res.status(500).json({ error: 'An error occurred while creating the course' });
         }
         res.status(200).json({ message: 'Course created successfully.' });
+    });
+});
+
+app.get('/courseinfo/:id', (req, res) => {
+    const courseId = req.params.id;
+  
+    const query = 'SELECT * FROM course WHERE course_id = ?';
+    db.query(query, [courseId], (err, result) => {
+      if (err) {
+        console.error('Error fetching course:', err);
+        return res.status(500).json({ error: 'An error occurred while fetching course info' });
+      }
+      if (result.length === 0) {
+        return res.status(404).json({ error: 'Course not found' });
+      }
+  
+      const course = result[0]; //query returns only one course
+      res.status(200).json(course);
+    });
+  });
+
+// Define storage for uploaded files
+const storage = multer.memoryStorage(); // Store files in memory
+  
+
+// Initialize multer upload
+const upload = multer({ storage: storage });
+
+// Route handler for adding a new topic
+app.post('/addTopic/:courseId', upload.array('files'), (req, res) => {
+    const courseId = req.params.courseId;
+    if (!courseId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const topicTitle = req.body.title;
+    const files = req.files;
+
+    // Count topics for the given course ID
+    const countQuery = 'SELECT COUNT(*) AS count FROM topic WHERE course_id = ?';
+    db.query(countQuery, [courseId], (countErr, countResult) => {
+        if (countErr) {
+            console.error('Error counting topics:', countErr);
+            return res.status(500).json({ error: 'An error occurred while counting topics' });
+        }
+        const sequence = countResult[0].count + 1;
+
+        // Insert new topic
+        const topicQuery = 'INSERT INTO topic (topic_title, course_id, sequence) VALUES (?, ?, ?)';
+        db.query(topicQuery, [topicTitle, courseId, sequence], (topicErr, topicResult) => {
+            if (topicErr) {
+                console.error('Error adding topic:', topicErr);
+                return res.status(500).json({ error: 'An error occurred while adding the topic' });
+            }
+
+            // Process uploaded files and insert into files table
+            files.forEach(file => {
+                // Insert file into files table
+                const insertFileQuery = 'INSERT INTO files (file_name, file_type, file_size, file_data) VALUES (?, ?, ?, ?)';
+                db.query(insertFileQuery, [file.originalname, file.mimetype, file.size, file.buffer], (fileErr, fileResult) => {
+                    if (fileErr) {
+                        console.error('Error inserting file into database:', fileErr);
+                        return res.status(500).json({ error: 'An error occurred while inserting file into database' });
+                    }
+
+                    const fileId = fileResult.insertId;
+
+                    // Insert record into topicmaterial table
+                    const topicMaterialQuery = 'INSERT INTO topicmaterial (topic_id, file_id) VALUES (?, ?)';
+                    db.query(topicMaterialQuery, [topicResult.insertId, fileId], (materialErr, materialResult) => {
+                        if (materialErr) {
+                            console.error('Error adding topic material:', materialErr);
+                            return res.status(500).json({ error: 'An error occurred while adding topic material' });
+                        }
+                    });
+                });
+            });
+
+            res.status(200).json({ message: 'Topic added successfully' });
+        });
     });
 });
 
