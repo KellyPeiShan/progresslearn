@@ -73,6 +73,68 @@ export default function InstructorDashboard () {
         }
     };
 
+    //for fetch topic info
+    const [topics, setTopics] = useState([]);
+
+    useEffect(() => {
+      // Fetch topics for the given course ID
+      fetch(`http://localhost:5000/topics/${id}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch topics');
+          }
+          return response.json();
+        })
+        .then(data => {
+          setTopics(data);
+        })
+        .catch(error => {
+          console.error('Error fetching topics:', error);
+        });
+    }, [id]);
+
+    //topic component
+    const TopicComponent = ({ topic }) => {
+        const downloadFile = async (fileId, fileName) => {
+          try {
+            const response = await fetch(`http://localhost:5000/downloadFile/${fileId}`);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(new Blob([blob]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+          } catch (error) {
+            console.error('Error downloading file:', error);
+          }
+        };
+      
+        return (
+          <div className="whitebox" style={{ padding: '10px', display: 'flex', marginBottom: '10px' }}>
+            <div style={{ width: '91%' }}>
+              <h3>{topic.topic_title}</h3>
+              <h4>Learning Material:</h4>
+              {topic.materials.map(material => (
+                <div key={material.tm_id} style={{marginBottom:"5px"}}>
+                  <button className="filedlbtn" onClick={() => downloadFile(material.file.file_id, material.file.file_name)}>
+                    {material.file.file_name}
+                  </button>
+                </div>
+              ))}
+              <h4>Quiz:</h4>
+            </div>
+            <Tooltip title="Edit">
+              <IconButton style={{ height: '35px', marginLeft: '3%' }}>
+                <EditIcon style={{ color: 'lightgrey', fontSize: '33px' }} />
+              </IconButton>
+            </Tooltip>
+          </div>
+        );
+      };
+      
+
     return (
         <div>
             <div className="home-header" >
@@ -131,17 +193,10 @@ export default function InstructorDashboard () {
                         </form>
                     </Box>
                 </Modal>
-                <div className="whitebox" style={{padding:'10px',display:'flex'}}>
-                <div style={{width:'91%'}}>
-                    <h3>Topic title</h3>
-                    <h3>Learning Material:</h3>
-                    <h3>Quiz:</h3>
-                </div>
-                <Tooltip title="Edit">
-                    <IconButton style={{height:'35px',marginLeft:'3%'}}>
-                        <EditIcon style={{ color: "lightgrey", fontSize: "33px" }}/>
-                    </IconButton>
-                </Tooltip>
+                <div>
+                    {topics.map(topic => (
+                        <TopicComponent key={topic.id} topic={topic} />
+                    ))}
                 </div>
             </div>
         </div>

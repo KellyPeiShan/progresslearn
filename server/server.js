@@ -352,6 +352,100 @@ app.post('/addTopic/:courseId', upload.array('files'), (req, res) => {
     });
 });
 
+// Fetch topics for the given course ID
+app.get('/topics/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    const topicsQuery = 'SELECT * FROM topic WHERE course_id = ?';
+    db.query(topicsQuery, [courseId], (err, topics) => {
+        if (err) {
+            console.error('Error fetching topics:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching topics' });
+        }
+        // For each topic, fetch topic materials
+        const topicsWithMaterials = topics.map(topic => {
+            return new Promise((resolve, reject) => {
+                const materialsQuery = 'SELECT * FROM topicmaterial WHERE topic_id = ?';
+                db.query(materialsQuery, [topic.topic_id], (materialErr, materials) => {
+                    if (materialErr) {
+                        console.error('Error fetching materials:', materialErr);
+                        return reject(materialErr);
+                    }
+                    // For each topic material, fetch file information
+                    const materialsWithFiles = materials.map(material => {
+                        return new Promise((resolveMaterial, rejectMaterial) => {
+                            const fileQuery = 'SELECT * FROM files WHERE file_id = ?';
+                            db.query(fileQuery, [material.file_id], (fileErr, files) => {
+                                if (fileErr) {
+                                    console.error('Error fetching file:', fileErr);
+                                    return rejectMaterial(fileErr);
+                                }
+                                // Assuming there is only one file per material
+                                material.file = files[0];
+                                resolveMaterial(material);
+                            });
+                        });
+                    });
+                    // Wait for all file queries to complete
+                    Promise.all(materialsWithFiles)
+                        .then(materials => {
+                            topic.materials = materials;
+                            resolve(topic);
+                        })
+                        .catch(reject);
+                });
+            });
+        });
+        // Wait for all topic queries to complete
+        Promise.all(topicsWithMaterials)
+            .then(topics => {
+                res.status(200).json(topics);
+            })
+            .catch(err => {
+                res.status(500).json({ error: 'An error occurred while fetching topics with materials' });
+            });
+    });
+});
+
+// Route handler to download files
+app.get('/downloadFile/:fileId', (req, res) => {
+    const fileId = req.params.fileId;
+    // Assuming you have a function to retrieve file data from the database
+    // Replace `getFileDataFromDatabase` with your actual function
+    getFileDataFromDatabase(fileId)
+      .then(fileData => {
+        // Set response headers
+        res.setHeader('Content-disposition', 'attachment; filename=' + fileData.file_name);
+        res.setHeader('Content-type', fileData.file_type);
+        // Send the file data as the response
+        res.send(fileData.file_data);
+      })
+      .catch(error => {
+        console.error('Error downloading file:', error);
+        res.status(500).json({ error: 'An error occurred while downloading the file' });
+      });
+  });
+
+  // Function to retrieve file data from the database
+function getFileDataFromDatabase(fileId) {
+    return new Promise((resolve, reject) => {
+      const query = 'SELECT * FROM files WHERE file_id = ?';
+      db.query(query, [fileId], (error, results) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+  
+        if (results.length === 0) {
+          reject('File not found');
+          return;
+        }
+  
+        const fileData = results[0];
+        resolve(fileData);
+      });
+    });
+  }
+  
 
 
 // Start server
