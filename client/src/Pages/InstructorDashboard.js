@@ -43,9 +43,9 @@ export default function InstructorDashboard () {
     const [files, setFiles] = useState([]);
 
     const handleFileChange = (e) => {
-        const selectedFiles = Array.from(e.target.files);
-        setFiles([...files, ...selectedFiles]);
-    };
+      const selectedFiles = Array.from(e.target.files);
+      setFiles(selectedFiles); // Set the selected files directly, replacing the previous files
+  };
 
     const handleAddTopic = async (e) => {
         e.preventDefault();
@@ -63,7 +63,7 @@ export default function InstructorDashboard () {
             const data = await response.json();
             if (response.ok) {
                 alert(data.message); // Topic added successfully
-                setAddTopicModal(false); // Close modal
+                window.location.reload();//reload the page
             } else {
                 alert(data.error); // Error message from backend
             }
@@ -95,21 +95,6 @@ export default function InstructorDashboard () {
 
     //topic component
     const TopicComponent = ({ topic }) => {
-        const downloadFile = async (fileId, fileName) => {
-          try {
-            const response = await fetch(`http://localhost:5000/downloadFile/${fileId}`);
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(new Blob([blob]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', fileName);
-            document.body.appendChild(link);
-            link.click();
-            link.parentNode.removeChild(link);
-          } catch (error) {
-            console.error('Error downloading file:', error);
-          }
-        };
       
         return (
           <div className="whitebox" style={{ padding: '10px', display: 'flex', marginBottom: '10px' }}>
@@ -123,7 +108,11 @@ export default function InstructorDashboard () {
                   </button>
                 </div>
               ))}
-              <h4>Quiz:</h4>
+              <div style={{display:'flex'}}>
+              <h4 style={{marginRight:'1%'}}>Quiz:</h4>
+              {topic.quiz_count === 0? 
+              <button className="blendbtn" style={{marginTop:'1.5%'}}>Add Quiz</button> : <p>You have created a quiz for this topic.</p>}
+              </div>
             </div>
             <Tooltip title="Edit">
               <IconButton style={{ height: '35px', marginLeft: '3%' }}>
@@ -133,7 +122,71 @@ export default function InstructorDashboard () {
           </div>
         );
       };
-      
+
+      //endpoint for file download
+      const downloadFile = async (fileId, fileName) => {
+        try {
+          const response = await fetch(`http://localhost:5000/downloadFile/${fileId}`);
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(new Blob([blob]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', fileName);
+          document.body.appendChild(link);
+          link.click();
+          link.parentNode.removeChild(link);
+        } catch (error) {
+          console.error('Error downloading file:', error);
+        }
+      };
+
+      //for edit additional material
+      const [AMmodal,setAMmodal]= useState(false);
+      const [additionalmaterials,setAdditionalMaterials] = useState([]);
+
+      //add additional material
+      const handleAddAdditionalMaterial = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+
+        try {
+            const response = await fetch(`http://localhost:5000/addAM/${id}`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message); // Additional material added successfully
+                setAMmodal(false); // Close modal
+            } else {
+                alert(data.error); // Error message from backend
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again later.');
+        }
+    };
+
+    //get additional material
+    useEffect(() => {
+      // Fetch topics for the given course ID
+      fetch(`http://localhost:5000/getAM/${id}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch additional materials');
+          }
+          return response.json();
+        })
+        .then(data => {
+          setAdditionalMaterials(data);
+        })
+        .catch(error => {
+          console.error('Error fetching additional materials:', error);
+        });
+    }, [id]);
 
     return (
         <div>
@@ -145,6 +198,7 @@ export default function InstructorDashboard () {
                         value={value}
                         onChange={handleChange}
                         centered
+                        textColor="none"
                         sx={{
                             "& .MuiTabs-indicator": {
                                 backgroundColor: "#8339ED",
@@ -198,6 +252,43 @@ export default function InstructorDashboard () {
                         <TopicComponent key={topic.id} topic={topic} />
                     ))}
                 </div>
+            </div>
+            <div className="dashboarddiv">
+                <h2 className="dashboardheader"><u>Additional Material</u></h2>
+                <div className="whitebox" style={{minHeight:'200px', padding:'10px',display:'flex', paddingTop:'20px'}}>
+                  <div style={{width:"91%"}}>
+                      {additionalmaterials.map(material => (
+                      <div key={material.am_id} style={{marginBottom:"5px"}}>
+                        <button className="filedlbtn" onClick={() => downloadFile(material.file.file_id, material.file.file_name)}>
+                          {material.file.file_name}
+                        </button>
+                      </div>
+                      ))}
+                  </div>
+                  <Tooltip title="Edit">
+                      <IconButton style={{height:'35px',marginLeft:'3%'}} onClick={()=>setAMmodal(true)}>
+                          <EditIcon style={{ color: "lightgrey", fontSize: "33px" }}/>
+                      </IconButton>
+                  </Tooltip>
+                </div>
+                <Modal open={AMmodal} onClose={()=>setAMmodal(false)}>
+                    <Box sx={boxStyle}>
+                        <h2 style={{marginTop:'0px'}}>Edit Additional Material</h2>
+                        <h4>Existing Material:</h4>
+                        {additionalmaterials.map(material => (
+                          <div key={material.am_id} style={{marginBottom:"5px",display:'flex', height:'20px'}}>
+                            <p style={{marginTop:'0',marginRight:'10px'}}> {material.file.file_name}</p>
+                            <button>Delete</button>
+                          </div>
+                         ))}
+                        <h4>Add Additional Material:</h4>
+                        <form onSubmit={handleAddAdditionalMaterial}>
+                            <input style={{marginLeft:'2%'}} type="file" name='files' onChange={handleFileChange} multiple required /><br></br><br></br>
+                            <button className='blendbtn' type="submit" style={{marginLeft:'45%'}}>Done</button>
+                        </form>
+                    </Box>
+                </Modal>
+                <div></div>
             </div>
         </div>
     );

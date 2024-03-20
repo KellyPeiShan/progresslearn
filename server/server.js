@@ -361,7 +361,7 @@ app.get('/topics/:courseId', (req, res) => {
             console.error('Error fetching topics:', err);
             return res.status(500).json({ error: 'An error occurred while fetching topics' });
         }
-        // For each topic, fetch topic materials
+        // For each topic, fetch topic materials and count quizzes
         const topicsWithMaterials = topics.map(topic => {
             return new Promise((resolve, reject) => {
                 const materialsQuery = 'SELECT * FROM topicmaterial WHERE topic_id = ?';
@@ -389,7 +389,16 @@ app.get('/topics/:courseId', (req, res) => {
                     Promise.all(materialsWithFiles)
                         .then(materials => {
                             topic.materials = materials;
-                            resolve(topic);
+                            // Count quizzes for the current topic
+                            const quizCountQuery = 'SELECT COUNT(*) AS quiz_count FROM quiz WHERE topic_id = ?';
+                            db.query(quizCountQuery, [topic.topic_id], (quizErr, quizResult) => {
+                                if (quizErr) {
+                                    console.error('Error counting quizzes:', quizErr);
+                                    return reject(quizErr);
+                                }
+                                topic.quiz_count = quizResult[0].quiz_count;
+                                resolve(topic);
+                            });
                         })
                         .catch(reject);
                 });
@@ -406,11 +415,11 @@ app.get('/topics/:courseId', (req, res) => {
     });
 });
 
+
 // Route handler to download files
 app.get('/downloadFile/:fileId', (req, res) => {
     const fileId = req.params.fileId;
-    // Assuming you have a function to retrieve file data from the database
-    // Replace `getFileDataFromDatabase` with your actual function
+
     getFileDataFromDatabase(fileId)
       .then(fileData => {
         // Set response headers
@@ -445,7 +454,79 @@ function getFileDataFromDatabase(fileId) {
       });
     });
   }
-  
+
+  // Route handler for adding additional material
+app.post('/addAM/:courseId', upload.array('files'), (req, res) => {
+    const courseId = req.params.courseId;
+    if (!courseId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const files = req.files;
+
+    // Process uploaded files and insert into files table
+    files.forEach(file => {
+        // Insert file into files table
+        const insertFileQuery = 'INSERT INTO files (file_name, file_type, file_size, file_data) VALUES (?, ?, ?, ?)';
+        db.query(insertFileQuery, [file.originalname, file.mimetype, file.size, file.buffer], (fileErr, fileResult) => {
+            if (fileErr) {
+                console.error('Error inserting file into database:', fileErr);
+                return res.status(500).json({ error: 'An error occurred while inserting file into database' });
+            }
+
+            const fileId = fileResult.insertId;
+
+            // Insert record into additional material table
+            const insertMaterialQuery = 'INSERT INTO additionalmaterial (file_id, course_id) VALUES (?, ?)';
+            db.query(insertMaterialQuery, [fileId, courseId], (materialErr, materialResult) => {
+                if (materialErr) {
+                    console.error('Error adding additional material:', materialErr);
+                    return res.status(500).json({ error: 'An error occurred while adding additional material' });
+                }
+            });
+        });
+    });
+
+    res.status(200).json({ message: 'Additional Material added successfully' });
+    
+});
+
+// Fetch additional materials for the given course ID
+app.get('/getAM/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    const additionalMaterialsQuery = 'SELECT * FROM additionalmaterial WHERE course_id = ?';
+    db.query(additionalMaterialsQuery, [courseId], (err, additionalMaterials) => {
+        if (err) {
+            console.error('Error fetching additional materials:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching additional materials' });
+        }
+
+        // For each additional material, fetch file information
+        const additionalMaterialsWithFiles = additionalMaterials.map(material => {
+            return new Promise((resolve, reject) => {
+                const fileQuery = 'SELECT * FROM files WHERE file_id = ?';
+                db.query(fileQuery, [material.file_id], (fileErr, files) => {
+                    if (fileErr) {
+                        console.error('Error fetching file:', fileErr);
+                        return reject(fileErr);
+                    }
+                    // Assuming there is only one file per additional material
+                    material.file = files[0];
+                    resolve(material);
+                });
+            });
+        });
+
+        // Wait for all file queries to complete
+        Promise.all(additionalMaterialsWithFiles)
+            .then(materials => {
+                res.status(200).json(materials);
+            })
+            .catch(err => {
+                res.status(500).json({ error: 'An error occurred while fetching additional materials with files' });
+            });
+    });
+});
 
 
 // Start server
