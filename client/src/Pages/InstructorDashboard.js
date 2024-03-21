@@ -115,10 +115,10 @@ export default function InstructorDashboard () {
               </div>
             </div>
             <Tooltip title="Edit">
-              <IconButton style={{ height: '35px', marginLeft: '3%' }}>
+              <IconButton style={{ height: '35px', marginLeft: '3%' }} onClick={()=>{setTargetTopic(topic);setTMmodal(true);}}>
                 <EditIcon style={{ color: 'lightgrey', fontSize: '33px' }} />
               </IconButton>
-            </Tooltip>
+            </Tooltip>   
           </div>
         );
       };
@@ -140,6 +140,59 @@ export default function InstructorDashboard () {
         }
       };
 
+      //for edit topic material
+      const [TMmodal,setTMmodal] = useState(false);
+      const [targettopic,setTargetTopic] = useState(null);
+
+      //add topic material
+      const handleAddTopicMaterial = async (e,topicId) => {
+        e.preventDefault();
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+
+        try {
+            const response = await fetch(`http://localhost:5000/addTM/${topicId}`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message); // Topic material added successfully
+                window.location.reload();//reload page
+            } else {
+                alert(data.error); // Error message from backend
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again later.');
+        }
+    };
+
+     //delete topic material
+     const handleDeleteTopicMaterial = (materialId) => {
+      if (window.confirm('Are you sure you want to delete this material?')) {
+        fetch(`http://localhost:5000/deleteTM/${materialId}`, {
+          method: 'DELETE',
+        })
+        .then(response => {
+          if (response.ok) {
+            // Remove the DOM element
+            const element = document.getElementById('tm_'+ materialId);
+            if (element) {
+              element.remove();
+            }            
+          } else {
+            console.error('Failed to delete material:', response.statusText);
+          }
+        })
+        .catch(error => {
+          console.error('Error deleting material:', error);
+        });
+      }
+    };
+
       //for edit additional material
       const [AMmodal,setAMmodal]= useState(false);
       const [additionalmaterials,setAdditionalMaterials] = useState([]);
@@ -160,7 +213,7 @@ export default function InstructorDashboard () {
             const data = await response.json();
             if (response.ok) {
                 alert(data.message); // Additional material added successfully
-                setAMmodal(false); // Close modal
+                window.location.reload();//reload page
             } else {
                 alert(data.error); // Error message from backend
             }
@@ -187,6 +240,55 @@ export default function InstructorDashboard () {
           console.error('Error fetching additional materials:', error);
         });
     }, [id]);
+
+    //delete additional material
+    const handleDeleteAdditionalMaterial = (materialId) => {
+      if (window.confirm('Are you sure you want to delete this material?')) {
+        fetch(`http://localhost:5000/deleteAM/${materialId}`, {
+          method: 'DELETE',
+        })
+        .then(response => {
+          if (response.ok) {
+            // Remove the DOM element
+            const element = document.getElementById('am_'+ materialId);
+            if (element) {
+              element.remove();
+            }            
+          } else {
+            console.error('Failed to delete material:', response.statusText);
+          }
+        })
+        .catch(error => {
+          console.error('Error deleting material:', error);
+        });
+      }
+    };
+
+    //for edit announcement
+    const [announcementmodal,setAnnouncementModal] = useState(false);
+    const [announcement,setAnnouncement] = useState('');
+
+    const handleUpdateAnnouncement = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/updateAnnouncement/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ announcement })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          console.log(data.message); // Log success message
+          window.location.reload();
+        } else {
+          console.error(data.error); // Log error message
+        }
+      } catch (error) {
+        console.error('Error update announcement:', error); // Log any fetch errors
+      }
+    };
+
 
     return (
         <div>
@@ -217,19 +319,30 @@ export default function InstructorDashboard () {
                     </Tabs>
                </div>
             </div>
+            {/* Announcement */}
             <div className="dashboarddiv">
                 <h2 className="dashboardheader"><u>Announcement</u></h2>
                 <div className="whitebox" style={{height:'200px',overflowY: 'scroll', padding:'10px',display:'flex'}}>
-                <p style={{ width: '92%' }}>
-                {course.announcement === null || course.announcement === '' ? 'There is no announcement at the moment.' : course.announcement}
-                </p>
-                <Tooltip title="Edit">
-                    <IconButton style={{height:'35px',marginLeft:'3%'}}>
-                        <EditIcon style={{ color: "lightgrey", fontSize: "33px" }}/>
-                    </IconButton>
-                </Tooltip>
+                  <p style={{ width: '92%' }}>
+                  {course.announcement === null || course.announcement === '' ? 'There is no announcement at the moment.' : course.announcement}
+                  </p>
+                  <Tooltip title="Edit">
+                      <IconButton style={{height:'35px',marginLeft:'3%'}} onClick={()=>setAnnouncementModal(true)}>
+                          <EditIcon style={{ color: "lightgrey", fontSize: "33px" }}/>
+                      </IconButton>
+                  </Tooltip>
+                  <Modal open={announcementmodal} onClose={()=>setAnnouncementModal(false)}>
+                    <Box sx={boxStyle}>
+                        <h2 style={{marginTop:'0px'}}>Edit Announcement</h2>
+                        <form>
+                            <textarea name="announcement" rows="4" cols="50" maxLength='1000' onChange={e => setAnnouncement(e.target.value)}>{course.announcement}</textarea><br></br><br></br>
+                            <button className='blendbtn' type="submit" style={{marginLeft:'43%'}} onClick={handleUpdateAnnouncement}>Done</button>
+                        </form>
+                    </Box>
+                </Modal>
                 </div>
             </div>
+            {/* Topics */}
             <div className="dashboarddiv">
                 <div style={{display:'flex'}}>
                 <h2 className="dashboardheader"><u>Topic</u></h2>
@@ -251,8 +364,28 @@ export default function InstructorDashboard () {
                     {topics.map(topic => (
                         <TopicComponent key={topic.id} topic={topic} />
                     ))}
+                    {TMmodal && targettopic && (
+                      <Modal open={TMmodal} onClose={()=>{setTMmodal(false);setTargetTopic(null);}}>
+                        <Box sx={boxStyle}>
+                          <h2 style={{marginTop:'0px'}}>Edit Topic Material</h2>
+                          <h4>Existing Material:</h4>
+                          {targettopic.materials.map(material => (
+                            <div id={"tm_"+material.tm_id} key={material.tm_id} style={{marginBottom:"5px",display:'flex', height:'20px'}}>
+                              <p style={{marginTop:'0',marginRight:'10px'}}> {material.file.file_name}</p>
+                              <button onClick={()=>handleDeleteTopicMaterial(material.tm_id)}>Delete</button>
+                            </div>
+                          ))}
+                          <h4>Add Topic Material:</h4>
+                          <form onSubmit={(e)=>handleAddTopicMaterial(e,targettopic.topic_id)}>
+                              <input style={{marginLeft:'2%'}} type="file" name='files' onChange={handleFileChange} multiple/><br></br><br></br>
+                              <button className='blendbtn' type="submit" style={{marginLeft:'45%'}}>Done</button>
+                          </form>
+                        </Box>
+                    </Modal>
+                   )}
                 </div>
             </div>
+            {/* Additional Material */}
             <div className="dashboarddiv">
                 <h2 className="dashboardheader"><u>Additional Material</u></h2>
                 <div className="whitebox" style={{minHeight:'200px', padding:'10px',display:'flex', paddingTop:'20px'}}>
@@ -276,19 +409,18 @@ export default function InstructorDashboard () {
                         <h2 style={{marginTop:'0px'}}>Edit Additional Material</h2>
                         <h4>Existing Material:</h4>
                         {additionalmaterials.map(material => (
-                          <div key={material.am_id} style={{marginBottom:"5px",display:'flex', height:'20px'}}>
+                          <div id={"am_"+material.am_id} key={material.am_id} style={{marginBottom:"5px",display:'flex', height:'20px'}}>
                             <p style={{marginTop:'0',marginRight:'10px'}}> {material.file.file_name}</p>
-                            <button>Delete</button>
+                            <button onClick={()=>handleDeleteAdditionalMaterial(material.am_id)}>Delete</button>
                           </div>
                          ))}
                         <h4>Add Additional Material:</h4>
                         <form onSubmit={handleAddAdditionalMaterial}>
-                            <input style={{marginLeft:'2%'}} type="file" name='files' onChange={handleFileChange} multiple required /><br></br><br></br>
+                            <input style={{marginLeft:'2%'}} type="file" name='files' onChange={handleFileChange} multiple/><br></br><br></br>
                             <button className='blendbtn' type="submit" style={{marginLeft:'45%'}}>Done</button>
                         </form>
                     </Box>
                 </Modal>
-                <div></div>
             </div>
         </div>
     );

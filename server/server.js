@@ -487,7 +487,7 @@ app.post('/addAM/:courseId', upload.array('files'), (req, res) => {
         });
     });
 
-    res.status(200).json({ message: 'Additional Material added successfully' });
+    res.status(200).json({ message: 'Additional Material edited successfully' });
     
 });
 
@@ -528,6 +528,111 @@ app.get('/getAM/:courseId', (req, res) => {
     });
 });
 
+// Backend code to handle deletion of additional material
+app.delete('/deleteAM/:materialId', (req, res) => {
+    const materialId = req.params.materialId;
+    
+    // Query to delete the material from the database
+    const deleteMaterialQuery = 'DELETE FROM additionalmaterial WHERE am_id = ?';
+    
+    db.query(deleteMaterialQuery, [materialId], (err, result) => {
+      if (err) {
+        console.error('Error deleting material:', err);
+        return res.status(500).json({ error: 'An error occurred while deleting material' });
+      }
+  
+      // Check if any rows were affected by the deletion
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Material not found' });
+      }
+  
+      // Send success response
+      res.status(200).json({ message: 'Material deleted successfully' });
+    });
+  });
+
+// Route handler for adding topic material
+app.post('/addTM/:topicId', upload.array('files'), (req, res) => {
+    const topicId = req.params.topicId;
+    if (!topicId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const files = req.files;
+
+    // Process uploaded files and insert into files table
+    files.forEach(file => {
+        // Insert file into files table
+        const insertFileQuery = 'INSERT INTO files (file_name, file_type, file_size, file_data) VALUES (?, ?, ?, ?)';
+        db.query(insertFileQuery, [file.originalname, file.mimetype, file.size, file.buffer], (fileErr, fileResult) => {
+            if (fileErr) {
+                console.error('Error inserting file into database:', fileErr);
+                return res.status(500).json({ error: 'An error occurred while inserting file into database' });
+            }
+
+            const fileId = fileResult.insertId;
+
+            // Insert record into topic material table
+            const insertMaterialQuery = 'INSERT INTO topicmaterial (file_id, topic_id) VALUES (?, ?)';
+            db.query(insertMaterialQuery, [fileId, topicId], (materialErr, materialResult) => {
+                if (materialErr) {
+                    console.error('Error adding topic material:', materialErr);
+                    return res.status(500).json({ error: 'An error occurred while adding topic material' });
+                }
+            });
+        });
+    });
+
+    res.status(200).json({ message: 'Topic Material edited successfully' });
+    
+});
+
+// Backend code to handle deletion of topic material
+app.delete('/deleteTM/:materialId', (req, res) => {
+    const materialId = req.params.materialId;
+    
+    // Query to delete the material from the database
+    const deleteMaterialQuery = 'DELETE FROM topicmaterial WHERE tm_id = ?';
+    
+    db.query(deleteMaterialQuery, [materialId], (err, result) => {
+      if (err) {
+        console.error('Error deleting material:', err);
+        return res.status(500).json({ error: 'An error occurred while deleting material' });
+      }
+  
+      // Check if any rows were affected by the deletion
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Material not found' });
+      }
+  
+      // Send success response
+      res.status(200).json({ message: 'Material deleted successfully' });
+    });
+  });
+
+// Backend code to handle updating announcement
+app.put('/updateAnnouncement/:courseId', (req, res) => {
+    const { courseId } = req.params;
+    const { announcement } = req.body;
+    
+    // Query to update the announcement in the database
+    const updateAnnouncementQuery = 'UPDATE course SET announcement = ? WHERE course_id = ?';
+    
+    db.query(updateAnnouncementQuery, [announcement, courseId], (err, result) => {
+        if (err) {
+            console.error('Error updating announcement:', err);
+            return res.status(500).json({ error: 'An error occurred while updating announcement' });
+        }
+
+        // Check if any rows were affected by the update
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+
+        // Send success response
+        res.status(200).json({ message: 'Announcement updated successfully' });
+    });
+});
 
 // Start server
 app.listen(PORT, () => {
