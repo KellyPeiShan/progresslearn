@@ -122,7 +122,7 @@ export default function InstructorHome () {
                 </div>
                 <div className="flexcourselist">
                     {courses.map(course => (
-                     <CourseComponent key={course.course_id} course={course} />
+                     <CourseComponent key={course.course_id} course={course} onCourseClick={()=> navigate(`/Instructor/Dashboard/Course/${course.course_id}`)}/>
                     ))}
                 </div>
                 <Modal open={showModal} onClose={handleCloseModal}>

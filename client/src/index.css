@@ -196,7 +196,6 @@ body{
 
 .newcourseform input,select{
  position: absolute;
- left: 38%;
  width: 55%;
 }
 
@@ -206,4 +205,35 @@ body{
   border-radius: 8px;
   height: 30px;
   font-size: 17px;
+}
+
+.backbtn{
+  position: absolute;
+  top: 3%;
+  left: 2%;
+}
+
+.linecoursetitle{
+  border-bottom: 2px solid black;
+  padding-bottom: 1%;
+}
+
+.dashboarddiv{
+  position: relative;
+  left: 10%;
+  width: 80%;
+}
+
+.dashboardheader{
+  font-family:'Jeju Gothic', sans-serif;
+}
+
+.whitebox{
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adjust values as needed */
+}
+
+.filedlbtn{
+  background-color: white;
+
 }

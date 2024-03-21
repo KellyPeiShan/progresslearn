@@ -4,6 +4,8 @@ const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -270,7 +272,367 @@ app.post('/createCourse', (req, res) => {
     });
 });
 
+app.get('/courseinfo/:id', (req, res) => {
+    const courseId = req.params.id;
+  
+    const query = 'SELECT * FROM course WHERE course_id = ?';
+    db.query(query, [courseId], (err, result) => {
+      if (err) {
+        console.error('Error fetching course:', err);
+        return res.status(500).json({ error: 'An error occurred while fetching course info' });
+      }
+      if (result.length === 0) {
+        return res.status(404).json({ error: 'Course not found' });
+      }
+  
+      const course = result[0]; //query returns only one course
+      res.status(200).json(course);
+    });
+  });
 
+// Define storage for uploaded files
+const storage = multer.memoryStorage(); // Store files in memory
+  
+
+// Initialize multer upload
+const upload = multer({ storage: storage });
+
+// Route handler for adding a new topic
+app.post('/addTopic/:courseId', upload.array('files'), (req, res) => {
+    const courseId = req.params.courseId;
+    if (!courseId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const topicTitle = req.body.title;
+    const files = req.files;
+
+    // Count topics for the given course ID
+    const countQuery = 'SELECT COUNT(*) AS count FROM topic WHERE course_id = ?';
+    db.query(countQuery, [courseId], (countErr, countResult) => {
+        if (countErr) {
+            console.error('Error counting topics:', countErr);
+            return res.status(500).json({ error: 'An error occurred while counting topics' });
+        }
+        const sequence = countResult[0].count + 1;
+
+        // Insert new topic
+        const topicQuery = 'INSERT INTO topic (topic_title, course_id, sequence) VALUES (?, ?, ?)';
+        db.query(topicQuery, [topicTitle, courseId, sequence], (topicErr, topicResult) => {
+            if (topicErr) {
+                console.error('Error adding topic:', topicErr);
+                return res.status(500).json({ error: 'An error occurred while adding the topic' });
+            }
+
+            // Process uploaded files and insert into files table
+            files.forEach(file => {
+                // Insert file into files table
+                const insertFileQuery = 'INSERT INTO files (file_name, file_type, file_size, file_data) VALUES (?, ?, ?, ?)';
+                db.query(insertFileQuery, [file.originalname, file.mimetype, file.size, file.buffer], (fileErr, fileResult) => {
+                    if (fileErr) {
+                        console.error('Error inserting file into database:', fileErr);
+                        return res.status(500).json({ error: 'An error occurred while inserting file into database' });
+                    }
+
+                    const fileId = fileResult.insertId;
+
+                    // Insert record into topicmaterial table
+                    const topicMaterialQuery = 'INSERT INTO topicmaterial (topic_id, file_id) VALUES (?, ?)';
+                    db.query(topicMaterialQuery, [topicResult.insertId, fileId], (materialErr, materialResult) => {
+                        if (materialErr) {
+                            console.error('Error adding topic material:', materialErr);
+                            return res.status(500).json({ error: 'An error occurred while adding topic material' });
+                        }
+                    });
+                });
+            });
+
+            res.status(200).json({ message: 'Topic added successfully' });
+        });
+    });
+});
+
+// Fetch topics for the given course ID
+app.get('/topics/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    const topicsQuery = 'SELECT * FROM topic WHERE course_id = ?';
+    db.query(topicsQuery, [courseId], (err, topics) => {
+        if (err) {
+            console.error('Error fetching topics:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching topics' });
+        }
+        // For each topic, fetch topic materials and count quizzes
+        const topicsWithMaterials = topics.map(topic => {
+            return new Promise((resolve, reject) => {
+                const materialsQuery = 'SELECT * FROM topicmaterial WHERE topic_id = ?';
+                db.query(materialsQuery, [topic.topic_id], (materialErr, materials) => {
+                    if (materialErr) {
+                        console.error('Error fetching materials:', materialErr);
+                        return reject(materialErr);
+                    }
+                    // For each topic material, fetch file information
+                    const materialsWithFiles = materials.map(material => {
+                        return new Promise((resolveMaterial, rejectMaterial) => {
+                            const fileQuery = 'SELECT * FROM files WHERE file_id = ?';
+                            db.query(fileQuery, [material.file_id], (fileErr, files) => {
+                                if (fileErr) {
+                                    console.error('Error fetching file:', fileErr);
+                                    return rejectMaterial(fileErr);
+                                }
+                                // Assuming there is only one file per material
+                                material.file = files[0];
+                                resolveMaterial(material);
+                            });
+                        });
+                    });
+                    // Wait for all file queries to complete
+                    Promise.all(materialsWithFiles)
+                        .then(materials => {
+                            topic.materials = materials;
+                            // Count quizzes for the current topic
+                            const quizCountQuery = 'SELECT COUNT(*) AS quiz_count FROM quiz WHERE topic_id = ?';
+                            db.query(quizCountQuery, [topic.topic_id], (quizErr, quizResult) => {
+                                if (quizErr) {
+                                    console.error('Error counting quizzes:', quizErr);
+                                    return reject(quizErr);
+                                }
+                                topic.quiz_count = quizResult[0].quiz_count;
+                                resolve(topic);
+                            });
+                        })
+                        .catch(reject);
+                });
+            });
+        });
+        // Wait for all topic queries to complete
+        Promise.all(topicsWithMaterials)
+            .then(topics => {
+                res.status(200).json(topics);
+            })
+            .catch(err => {
+                res.status(500).json({ error: 'An error occurred while fetching topics with materials' });
+            });
+    });
+});
+
+
+// Route handler to download files
+app.get('/downloadFile/:fileId', (req, res) => {
+    const fileId = req.params.fileId;
+
+    getFileDataFromDatabase(fileId)
+      .then(fileData => {
+        // Set response headers
+        res.setHeader('Content-disposition', 'attachment; filename=' + fileData.file_name);
+        res.setHeader('Content-type', fileData.file_type);
+        // Send the file data as the response
+        res.send(fileData.file_data);
+      })
+      .catch(error => {
+        console.error('Error downloading file:', error);
+        res.status(500).json({ error: 'An error occurred while downloading the file' });
+      });
+  });
+
+  // Function to retrieve file data from the database
+function getFileDataFromDatabase(fileId) {
+    return new Promise((resolve, reject) => {
+      const query = 'SELECT * FROM files WHERE file_id = ?';
+      db.query(query, [fileId], (error, results) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+  
+        if (results.length === 0) {
+          reject('File not found');
+          return;
+        }
+  
+        const fileData = results[0];
+        resolve(fileData);
+      });
+    });
+  }
+
+  // Route handler for adding additional material
+app.post('/addAM/:courseId', upload.array('files'), (req, res) => {
+    const courseId = req.params.courseId;
+    if (!courseId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const files = req.files;
+
+    // Process uploaded files and insert into files table
+    files.forEach(file => {
+        // Insert file into files table
+        const insertFileQuery = 'INSERT INTO files (file_name, file_type, file_size, file_data) VALUES (?, ?, ?, ?)';
+        db.query(insertFileQuery, [file.originalname, file.mimetype, file.size, file.buffer], (fileErr, fileResult) => {
+            if (fileErr) {
+                console.error('Error inserting file into database:', fileErr);
+                return res.status(500).json({ error: 'An error occurred while inserting file into database' });
+            }
+
+            const fileId = fileResult.insertId;
+
+            // Insert record into additional material table
+            const insertMaterialQuery = 'INSERT INTO additionalmaterial (file_id, course_id) VALUES (?, ?)';
+            db.query(insertMaterialQuery, [fileId, courseId], (materialErr, materialResult) => {
+                if (materialErr) {
+                    console.error('Error adding additional material:', materialErr);
+                    return res.status(500).json({ error: 'An error occurred while adding additional material' });
+                }
+            });
+        });
+    });
+
+    res.status(200).json({ message: 'Additional Material edited successfully' });
+    
+});
+
+// Fetch additional materials for the given course ID
+app.get('/getAM/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    const additionalMaterialsQuery = 'SELECT * FROM additionalmaterial WHERE course_id = ?';
+    db.query(additionalMaterialsQuery, [courseId], (err, additionalMaterials) => {
+        if (err) {
+            console.error('Error fetching additional materials:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching additional materials' });
+        }
+
+        // For each additional material, fetch file information
+        const additionalMaterialsWithFiles = additionalMaterials.map(material => {
+            return new Promise((resolve, reject) => {
+                const fileQuery = 'SELECT * FROM files WHERE file_id = ?';
+                db.query(fileQuery, [material.file_id], (fileErr, files) => {
+                    if (fileErr) {
+                        console.error('Error fetching file:', fileErr);
+                        return reject(fileErr);
+                    }
+                    // Assuming there is only one file per additional material
+                    material.file = files[0];
+                    resolve(material);
+                });
+            });
+        });
+
+        // Wait for all file queries to complete
+        Promise.all(additionalMaterialsWithFiles)
+            .then(materials => {
+                res.status(200).json(materials);
+            })
+            .catch(err => {
+                res.status(500).json({ error: 'An error occurred while fetching additional materials with files' });
+            });
+    });
+});
+
+// Backend code to handle deletion of additional material
+app.delete('/deleteAM/:materialId', (req, res) => {
+    const materialId = req.params.materialId;
+    
+    // Query to delete the material from the database
+    const deleteMaterialQuery = 'DELETE FROM additionalmaterial WHERE am_id = ?';
+    
+    db.query(deleteMaterialQuery, [materialId], (err, result) => {
+      if (err) {
+        console.error('Error deleting material:', err);
+        return res.status(500).json({ error: 'An error occurred while deleting material' });
+      }
+  
+      // Check if any rows were affected by the deletion
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Material not found' });
+      }
+  
+      // Send success response
+      res.status(200).json({ message: 'Material deleted successfully' });
+    });
+  });
+
+// Route handler for adding topic material
+app.post('/addTM/:topicId', upload.array('files'), (req, res) => {
+    const topicId = req.params.topicId;
+    if (!topicId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const files = req.files;
+
+    // Process uploaded files and insert into files table
+    files.forEach(file => {
+        // Insert file into files table
+        const insertFileQuery = 'INSERT INTO files (file_name, file_type, file_size, file_data) VALUES (?, ?, ?, ?)';
+        db.query(insertFileQuery, [file.originalname, file.mimetype, file.size, file.buffer], (fileErr, fileResult) => {
+            if (fileErr) {
+                console.error('Error inserting file into database:', fileErr);
+                return res.status(500).json({ error: 'An error occurred while inserting file into database' });
+            }
+
+            const fileId = fileResult.insertId;
+
+            // Insert record into topic material table
+            const insertMaterialQuery = 'INSERT INTO topicmaterial (file_id, topic_id) VALUES (?, ?)';
+            db.query(insertMaterialQuery, [fileId, topicId], (materialErr, materialResult) => {
+                if (materialErr) {
+                    console.error('Error adding topic material:', materialErr);
+                    return res.status(500).json({ error: 'An error occurred while adding topic material' });
+                }
+            });
+        });
+    });
+
+    res.status(200).json({ message: 'Topic Material edited successfully' });
+    
+});
+
+// Backend code to handle deletion of topic material
+app.delete('/deleteTM/:materialId', (req, res) => {
+    const materialId = req.params.materialId;
+    
+    // Query to delete the material from the database
+    const deleteMaterialQuery = 'DELETE FROM topicmaterial WHERE tm_id = ?';
+    
+    db.query(deleteMaterialQuery, [materialId], (err, result) => {
+      if (err) {
+        console.error('Error deleting material:', err);
+        return res.status(500).json({ error: 'An error occurred while deleting material' });
+      }
+  
+      // Check if any rows were affected by the deletion
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Material not found' });
+      }
+  
+      // Send success response
+      res.status(200).json({ message: 'Material deleted successfully' });
+    });
+  });
+
+// Backend code to handle updating announcement
+app.put('/updateAnnouncement/:courseId', (req, res) => {
+    const { courseId } = req.params;
+    const { announcement } = req.body;
+    
+    // Query to update the announcement in the database
+    const updateAnnouncementQuery = 'UPDATE course SET announcement = ? WHERE course_id = ?';
+    
+    db.query(updateAnnouncementQuery, [announcement, courseId], (err, result) => {
+        if (err) {
+            console.error('Error updating announcement:', err);
+            return res.status(500).json({ error: 'An error occurred while updating announcement' });
+        }
+
+        // Check if any rows were affected by the update
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+
+        // Send success response
+        res.status(200).json({ message: 'Announcement updated successfully' });
+    });
+});
 
 // Start server
 app.listen(PORT, () => {
