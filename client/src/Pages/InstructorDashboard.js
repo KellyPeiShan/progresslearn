@@ -9,6 +9,9 @@ import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import boxStyle from "../Components/boxstyle";
+import InstructorProgress from "../Components/InstructorProgress";
+import InstructorPerformance from "../Components/InstructorPerformance";
+import InstructorFeedback from "../Components/InstructorFeedback";
 
 export default function InstructorDashboard () {
     //get course id from url
@@ -312,116 +315,127 @@ export default function InstructorDashboard () {
                                 color: "#8339ED", 
                             },
                         }}                    >
-                        <Tab label="Dashboard" />
-                        <Tab label="Progress" />
-                        <Tab label="Performance" />
-                        <Tab label="Feedback" />
+                        <Tab label="Dashboard" value={0}/>
+                        <Tab label="Progress" value={1}/>
+                        <Tab label="Performance" value={2}/>
+                        <Tab label="Feedback" value={3}/>
                     </Tabs>
                </div>
             </div>
-            {/* Announcement */}
-            <div className="dashboarddiv">
-                <h2 className="dashboardheader"><u>Announcement</u></h2>
-                <div className="whitebox" style={{height:'200px',overflowY: 'scroll', padding:'10px',display:'flex'}}>
-                  <p style={{ width: '92%' }}>
-                  {course.announcement === null || course.announcement === '' ? 'There is no announcement at the moment.' : course.announcement}
-                  </p>
-                  <Tooltip title="Edit">
-                      <IconButton style={{height:'35px',marginLeft:'3%'}} onClick={()=>setAnnouncementModal(true)}>
-                          <EditIcon style={{ color: "lightgrey", fontSize: "33px" }}/>
-                      </IconButton>
-                  </Tooltip>
-                  <Modal open={announcementmodal} onClose={()=>setAnnouncementModal(false)}>
-                    <Box sx={boxStyle}>
-                        <h2 style={{marginTop:'0px'}}>Edit Announcement</h2>
-                        <form>
-                            <textarea name="announcement" rows="4" cols="50" maxLength='1000' onChange={e => setAnnouncement(e.target.value)}>{course.announcement}</textarea><br></br><br></br>
-                            <button className='blendbtn' type="submit" style={{marginLeft:'43%'}} onClick={handleUpdateAnnouncement}>Done</button>
-                        </form>
-                    </Box>
-                </Modal>
-                </div>
-            </div>
-            {/* Topics */}
-            <div className="dashboarddiv">
-                <div style={{display:'flex'}}>
-                <h2 className="dashboardheader"><u>Topic</u></h2>
-                <button className="blendbtn" style={{marginTop: '1.7%', marginLeft: '2%'}} onClick={()=>setAddTopicModal(true)}>Add Topic</button>
-                </div>
-                <Modal open={addtopicmodal} onClose={()=>setAddTopicModal(false)}>
-                    <Box sx={boxStyle}>
-                        <h2 style={{marginTop:'0px'}}>Add Topic</h2>
-                        <form onSubmit={handleAddTopic}>
-                            <label>Topic Title:</label>
-                            <input style={{marginLeft:'4%', width:'70%'}} type="text" value={title} onChange={(e) => setTitle(e.target.value)} required /><br></br><br></br>
-                            <label>Upload File:</label>
-                            <input style={{marginLeft:'2%'}} type="file" name='files' onChange={handleFileChange} multiple required /><br></br><br></br>
-                            <button className='blendbtn' type="submit" style={{marginLeft:'45%'}}>Add</button>
-                        </form>
-                    </Box>
-                </Modal>
-                <div>
-                    {topics.map(topic => (
-                        <TopicComponent key={topic.id} topic={topic} />
-                    ))}
-                    {TMmodal && targettopic && (
-                      <Modal open={TMmodal} onClose={()=>{setTMmodal(false);setTargetTopic(null);}}>
-                        <Box sx={boxStyle}>
-                          <h2 style={{marginTop:'0px'}}>Edit Topic Material</h2>
+            {/* When Dashboard Tab is selected */}
+            {value === 0 &&
+            <div>
+              {/* Announcement */}
+              <div className="dashboarddiv">
+                  <h2 className="dashboardheader"><u>Announcement</u></h2>
+                  <div className="whitebox" style={{height:'200px',overflowY: 'scroll', padding:'10px',display:'flex'}}>
+                    <p style={{ width: '92%' }}>
+                    {course.announcement === null || course.announcement === '' ? 'There is no announcement at the moment.' : course.announcement}
+                    </p>
+                    <Tooltip title="Edit">
+                        <IconButton style={{height:'35px',marginLeft:'3%'}} onClick={()=>setAnnouncementModal(true)}>
+                            <EditIcon style={{ color: "lightgrey", fontSize: "33px" }}/>
+                        </IconButton>
+                    </Tooltip>
+                    <Modal open={announcementmodal} onClose={()=>setAnnouncementModal(false)}>
+                      <Box sx={boxStyle}>
+                          <h2 style={{marginTop:'0px'}}>Edit Announcement</h2>
+                          <form>
+                              <textarea name="announcement" rows="4" cols="50" maxLength='1000' onChange={e => setAnnouncement(e.target.value)}>{course.announcement}</textarea><br></br><br></br>
+                              <button className='blendbtn' type="submit" style={{marginLeft:'43%'}} onClick={handleUpdateAnnouncement}>Done</button>
+                          </form>
+                      </Box>
+                  </Modal>
+                  </div>
+              </div>
+              {/* Topics */}
+              <div className="dashboarddiv">
+                  <div style={{display:'flex'}}>
+                  <h2 className="dashboardheader"><u>Topic</u></h2>
+                  <button className="blendbtn" style={{marginTop: '1.7%', marginLeft: '2%'}} onClick={()=>setAddTopicModal(true)}>Add Topic</button>
+                  </div>
+                  <Modal open={addtopicmodal} onClose={()=>setAddTopicModal(false)}>
+                      <Box sx={boxStyle}>
+                          <h2 style={{marginTop:'0px'}}>Add Topic</h2>
+                          <form onSubmit={handleAddTopic}>
+                              <label>Topic Title:</label>
+                              <input style={{marginLeft:'4%', width:'70%'}} type="text" value={title} onChange={(e) => setTitle(e.target.value)} required /><br></br><br></br>
+                              <label>Upload File:</label>
+                              <input style={{marginLeft:'2%'}} type="file" name='files' onChange={handleFileChange} multiple required /><br></br><br></br>
+                              <button className='blendbtn' type="submit" style={{marginLeft:'45%'}}>Add</button>
+                          </form>
+                      </Box>
+                  </Modal>
+                  <div>
+                      {topics.map(topic => (
+                          <TopicComponent key={topic.id} topic={topic} />
+                      ))}
+                      {TMmodal && targettopic && (
+                        <Modal open={TMmodal} onClose={()=>{setTMmodal(false);setTargetTopic(null);}}>
+                          <Box sx={boxStyle}>
+                            <h2 style={{marginTop:'0px'}}>Edit Topic Material</h2>
+                            <h4>Existing Material:</h4>
+                            {targettopic.materials.map(material => (
+                              <div id={"tm_"+material.tm_id} key={material.tm_id} style={{marginBottom:"5px",display:'flex', height:'20px'}}>
+                                <p style={{marginTop:'0',marginRight:'10px'}}> {material.file.file_name}</p>
+                                <button onClick={()=>handleDeleteTopicMaterial(material.tm_id)}>Delete</button>
+                              </div>
+                            ))}
+                            <h4>Add Topic Material:</h4>
+                            <form onSubmit={(e)=>handleAddTopicMaterial(e,targettopic.topic_id)}>
+                                <input style={{marginLeft:'2%'}} type="file" name='files' onChange={handleFileChange} multiple/><br></br><br></br>
+                                <button className='blendbtn' type="submit" style={{marginLeft:'45%'}}>Done</button>
+                            </form>
+                          </Box>
+                      </Modal>
+                    )}
+                  </div>
+              </div>
+              {/* Additional Material */}
+              <div className="dashboarddiv">
+                  <h2 className="dashboardheader"><u>Additional Material</u></h2>
+                  <div className="whitebox" style={{minHeight:'200px', padding:'10px',display:'flex', paddingTop:'20px'}}>
+                    <div style={{width:"91%"}}>
+                        {additionalmaterials.map(material => (
+                        <div key={material.am_id} style={{marginBottom:"5px"}}>
+                          <button className="filedlbtn" onClick={() => downloadFile(material.file.file_id, material.file.file_name)}>
+                            {material.file.file_name}
+                          </button>
+                        </div>
+                        ))}
+                    </div>
+                    <Tooltip title="Edit">
+                        <IconButton style={{height:'35px',marginLeft:'3%'}} onClick={()=>setAMmodal(true)}>
+                            <EditIcon style={{ color: "lightgrey", fontSize: "33px" }}/>
+                        </IconButton>
+                    </Tooltip>
+                  </div>
+                  <Modal open={AMmodal} onClose={()=>setAMmodal(false)}>
+                      <Box sx={boxStyle}>
+                          <h2 style={{marginTop:'0px'}}>Edit Additional Material</h2>
                           <h4>Existing Material:</h4>
-                          {targettopic.materials.map(material => (
-                            <div id={"tm_"+material.tm_id} key={material.tm_id} style={{marginBottom:"5px",display:'flex', height:'20px'}}>
+                          {additionalmaterials.map(material => (
+                            <div id={"am_"+material.am_id} key={material.am_id} style={{marginBottom:"5px",display:'flex', height:'20px'}}>
                               <p style={{marginTop:'0',marginRight:'10px'}}> {material.file.file_name}</p>
-                              <button onClick={()=>handleDeleteTopicMaterial(material.tm_id)}>Delete</button>
+                              <button onClick={()=>handleDeleteAdditionalMaterial(material.am_id)}>Delete</button>
                             </div>
                           ))}
-                          <h4>Add Topic Material:</h4>
-                          <form onSubmit={(e)=>handleAddTopicMaterial(e,targettopic.topic_id)}>
+                          <h4>Add Additional Material:</h4>
+                          <form onSubmit={handleAddAdditionalMaterial}>
                               <input style={{marginLeft:'2%'}} type="file" name='files' onChange={handleFileChange} multiple/><br></br><br></br>
                               <button className='blendbtn' type="submit" style={{marginLeft:'45%'}}>Done</button>
                           </form>
-                        </Box>
-                    </Modal>
-                   )}
-                </div>
+                      </Box>
+                  </Modal>
+              </div>
             </div>
-            {/* Additional Material */}
-            <div className="dashboarddiv">
-                <h2 className="dashboardheader"><u>Additional Material</u></h2>
-                <div className="whitebox" style={{minHeight:'200px', padding:'10px',display:'flex', paddingTop:'20px'}}>
-                  <div style={{width:"91%"}}>
-                      {additionalmaterials.map(material => (
-                      <div key={material.am_id} style={{marginBottom:"5px"}}>
-                        <button className="filedlbtn" onClick={() => downloadFile(material.file.file_id, material.file.file_name)}>
-                          {material.file.file_name}
-                        </button>
-                      </div>
-                      ))}
-                  </div>
-                  <Tooltip title="Edit">
-                      <IconButton style={{height:'35px',marginLeft:'3%'}} onClick={()=>setAMmodal(true)}>
-                          <EditIcon style={{ color: "lightgrey", fontSize: "33px" }}/>
-                      </IconButton>
-                  </Tooltip>
-                </div>
-                <Modal open={AMmodal} onClose={()=>setAMmodal(false)}>
-                    <Box sx={boxStyle}>
-                        <h2 style={{marginTop:'0px'}}>Edit Additional Material</h2>
-                        <h4>Existing Material:</h4>
-                        {additionalmaterials.map(material => (
-                          <div id={"am_"+material.am_id} key={material.am_id} style={{marginBottom:"5px",display:'flex', height:'20px'}}>
-                            <p style={{marginTop:'0',marginRight:'10px'}}> {material.file.file_name}</p>
-                            <button onClick={()=>handleDeleteAdditionalMaterial(material.am_id)}>Delete</button>
-                          </div>
-                         ))}
-                        <h4>Add Additional Material:</h4>
-                        <form onSubmit={handleAddAdditionalMaterial}>
-                            <input style={{marginLeft:'2%'}} type="file" name='files' onChange={handleFileChange} multiple/><br></br><br></br>
-                            <button className='blendbtn' type="submit" style={{marginLeft:'45%'}}>Done</button>
-                        </form>
-                    </Box>
-                </Modal>
-            </div>
-        </div>
+            }
+            {/* When Progress Tab is clicked */}
+            {value === 1 && <InstructorProgress courseId={id}/>}
+            {/* When Performance Tab is clicked */}
+            {value === 2 && <InstructorPerformance courseId={id}/>}
+            {/* When Feedback Tab is clicked */}
+            {value === 3 && <InstructorFeedback courseId={id}/>}
+         </div>
     );
 };
