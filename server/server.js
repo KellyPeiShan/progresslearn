@@ -634,6 +634,30 @@ app.put('/updateAnnouncement/:courseId', (req, res) => {
     });
 });
 
+app.get('/studentProgress/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    
+    // Query to select student progress and calculate max_progress
+    const query = `
+        SELECT e.student_id, e.progress, u.full_name, (
+            SELECT COUNT(*) FROM topic WHERE course_id = ?
+        ) AS max_progress
+        FROM enrollment e
+        JOIN user u ON e.student_id = u.user_id
+        WHERE e.course_id = ?
+    `;
+    
+    db.query(query, [courseId, courseId], (err, result) => {
+        if (err) {
+            console.error('Error fetching student progress:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching student progress' });
+        }
+
+        // Send result to the frontend
+        res.status(200).json(result);
+    });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

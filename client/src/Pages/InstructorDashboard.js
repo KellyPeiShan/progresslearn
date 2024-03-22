@@ -49,7 +49,7 @@ export default function InstructorDashboard () {
       const selectedFiles = Array.from(e.target.files);
       setFiles(selectedFiles); // Set the selected files directly, replacing the previous files
   };
-
+    //end point for adding topic
     const handleAddTopic = async (e) => {
         e.preventDefault();
         const formData = new FormData();
