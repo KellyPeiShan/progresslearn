@@ -658,6 +658,22 @@ app.get('/studentProgress/:courseId', (req, res) => {
     });
 });
 
+app.get('/topicinfo/:topicId', (req, res) => {
+    const topicId = req.params.topicId;
+
+    const query = `SELECT topic_title FROM topic WHERE topic_id = ?`;
+
+    db.query(query, [topicId], (err, result) => {
+        if (err) {
+            console.error('Error fetching topic information:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching topic information' });
+        }
+        const topicinfo = result[0];
+        res.status(200).json(topicinfo);
+    });
+
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

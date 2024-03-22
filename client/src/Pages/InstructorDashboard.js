@@ -14,6 +14,7 @@ import InstructorPerformance from "../Components/InstructorPerformance";
 import InstructorFeedback from "../Components/InstructorFeedback";
 
 export default function InstructorDashboard () {
+    const navigate = useNavigate();
     //get course id from url
     const { id } = useParams();
     //store course info
@@ -114,7 +115,7 @@ export default function InstructorDashboard () {
               <div style={{display:'flex'}}>
               <h4 style={{marginRight:'1%'}}>Quiz:</h4>
               {topic.quiz_count === 0? 
-              <button className="blendbtn" style={{marginTop:'1.5%'}}>Add Quiz</button> : <p>You have created a quiz for this topic.</p>}
+              <button className="blendbtn" style={{marginTop:'1.5%'}} onClick={()=> navigate(`/Instructor/AddQuiz/${topic.topic_id}`)}>Add Quiz</button> : <p>You have created a quiz for this topic.</p>}
               </div>
             </div>
             <Tooltip title="Edit">
@@ -228,7 +229,7 @@ export default function InstructorDashboard () {
 
     //get additional material
     useEffect(() => {
-      // Fetch topics for the given course ID
+      // Fetch additional material for the given course ID
       fetch(`http://localhost:5000/getAM/${id}`)
         .then(response => {
           if (!response.ok) {
