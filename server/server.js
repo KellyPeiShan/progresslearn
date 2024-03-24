@@ -634,6 +634,7 @@ app.put('/updateAnnouncement/:courseId', (req, res) => {
     });
 });
 
+//end point for fetching student progress
 app.get('/studentProgress/:courseId', (req, res) => {
     const courseId = req.params.courseId;
     
@@ -657,6 +658,54 @@ app.get('/studentProgress/:courseId', (req, res) => {
         res.status(200).json(result);
     });
 });
+
+//end point for fetching topic info
+app.get('/topicinfo/:topicId', (req, res) => {
+    const topicId = req.params.topicId;
+
+    const query = `SELECT topic_title FROM topic WHERE topic_id = ?`;
+
+    db.query(query, [topicId], (err, result) => {
+        if (err) {
+            console.error('Error fetching topic information:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching topic information' });
+        }
+        const topicinfo = result[0];
+        res.status(200).json(topicinfo);
+    });
+
+});
+
+// end point for adding quiz
+app.post('/addQuiz', (req, res) => {
+    const { topicId, questionCount, questions, passingRate } = req.body;
+  
+    // Insert into quiz table
+    db.query('INSERT INTO quiz (topic_id, pass_rate, no_of_ques) VALUES (?, ?, ?)', [topicId, passingRate, questionCount], (err, result) => {
+      if (err) {
+        console.error('Error adding quiz:', err);
+        return res.status(500).json({ error: 'An error occurred while adding quiz' });
+      }
+  
+      // Get the inserted quiz ID
+      const quizId = result.insertId;
+  
+      // Insert questions into question table
+      questions.forEach(question => {
+        db.query('INSERT INTO question (quiz_id, question, selection_1, selection_2, selection_3, selection_4, answer) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [quizId, question.question, question.selections[0], question.selections[1], question.selections[2], question.selections[3], question.answer],
+          (err, result) => {
+            if (err) {
+              console.error('Error adding question:', err);
+              return res.status(500).json({ error: 'An error occurred while adding questions' });
+            }
+          });
+      });
+  
+      res.status(200).json({ message: 'Quiz added successfully' });
+    });
+  });
+  
 
 // Start server
 app.listen(PORT, () => {
