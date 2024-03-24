@@ -115,7 +115,7 @@ export default function InstructorDashboard () {
               <div style={{display:'flex'}}>
               <h4 style={{marginRight:'1%'}}>Quiz:</h4>
               {topic.quiz_count === 0? 
-              <button className="blendbtn" style={{marginTop:'1.5%'}} onClick={()=> navigate(`/Instructor/AddQuiz/${id}/${topic.topic_id}`)}>Add Quiz</button> : <p>You have created a quiz for this topic.</p>}
+              <button className="blendbtn" style={{marginTop:'1.5%'}} onClick={()=> navigate(`/Instructor/AddQuiz/${id}/${topic.topic_id}`)}>Add Quiz</button> : <p style={{marginTop:'2%'}}>You have created a quiz for this topic.</p>}
               </div>
             </div>
             <Tooltip title="Edit">
