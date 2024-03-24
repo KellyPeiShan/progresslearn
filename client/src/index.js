@@ -36,7 +36,7 @@ const routerConfig = [
     element:<InstructorDashboard />
   },
   {
-    path:"/Instructor/AddQuiz/:id" ,
+    path:"/Instructor/AddQuiz/:courseId/:topicId" ,
     element:<AddQuiz />
   },
 ];
