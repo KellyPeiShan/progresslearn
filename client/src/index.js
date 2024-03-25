@@ -13,6 +13,7 @@ import StudentHome from "./Pages/StudentHome";
 import InstructorHome from "./Pages/InstructorHome";
 import InstructorDashboard from "./Pages/InstructorDashboard";
 import AddQuiz from "./Pages/AddQuiz";
+import StudentDashboard from "./Pages/StudentDashboard";
 
 const routerConfig = [
   {
@@ -38,6 +39,10 @@ const routerConfig = [
   {
     path:"/Instructor/AddQuiz/:courseId/:topicId" ,
     element:<AddQuiz />
+  },
+  {
+    path:"/Student/Dashboard/Course/:id" ,
+    element:<StudentDashboard />
   },
 ];
 

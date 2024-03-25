@@ -705,7 +705,101 @@ app.post('/addQuiz', (req, res) => {
       res.status(200).json({ message: 'Quiz added successfully' });
     });
   });
-  
+
+// Fetch topics for the given course ID
+app.get('/studenttopics/:courseId', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+    const userId = getUserIdFromToken(token); // Get user ID from token
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+    }
+    const courseId = req.params.courseId;
+    const topicsQuery = 'SELECT * FROM topic WHERE course_id = ?';
+    db.query(topicsQuery, [courseId], (err, topics) => {
+        if (err) {
+            console.error('Error fetching topics:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching topics' });
+        }
+        // For each topic, fetch topic materials and count quizzes
+        const topicsWithMaterialsAndQuizResults = topics.map(topic => {
+            return new Promise((resolve, reject) => {
+                const materialsQuery = 'SELECT * FROM topicmaterial WHERE topic_id = ?';
+                db.query(materialsQuery, [topic.topic_id], (materialErr, materials) => {
+                    if (materialErr) {
+                        console.error('Error fetching materials:', materialErr);
+                        return reject(materialErr);
+                    }
+                    // For each topic material, fetch file information
+                    const materialsWithFiles = materials.map(material => {
+                        return new Promise((resolveMaterial, rejectMaterial) => {
+                            const fileQuery = 'SELECT * FROM files WHERE file_id = ?';
+                            db.query(fileQuery, [material.file_id], (fileErr, files) => {
+                                if (fileErr) {
+                                    console.error('Error fetching file:', fileErr);
+                                    return rejectMaterial(fileErr);
+                                }
+                                // Assuming there is only one file per material
+                                material.file = files[0];
+                                resolveMaterial(material);
+                            });
+                        });
+                    });
+                    // Wait for all file queries to complete
+                    Promise.all(materialsWithFiles)
+                        .then(materials => {
+                            topic.materials = materials;
+                            // Count quizzes for the current topic
+                            const quizCountQuery = 'SELECT COUNT(*) AS quiz_count FROM quiz WHERE topic_id = ?';
+                            db.query(quizCountQuery, [topic.topic_id], (quizErr, quizResult) => {
+                                if (quizErr) {
+                                    console.error('Error counting quizzes:', quizErr);
+                                    return reject(quizErr);
+                                }
+                                topic.quiz_count = quizResult[0].quiz_count;
+                                
+                                // Fetch quiz result for the current topic
+                                const selectQuizQuery = 'SELECT quiz_id FROM quiz WHERE topic_id = ?';
+                                db.query(selectQuizQuery, [topic.topic_id], (selectQuizErr, selectQuizResult) => {
+                                    if (selectQuizErr) {
+                                        console.error('Error selecting quiz:', selectQuizErr);
+                                        return reject(selectQuizErr);
+                                    }
+                                    
+                                    if (selectQuizResult.length > 0) {
+                                        const quizId = selectQuizResult[0].quiz_id;
+                                        const checkPerformanceQuery = 'SELECT MAX(score) AS score FROM quizperformance WHERE quiz_id = ? AND student_id = ?';
+                                        db.query(checkPerformanceQuery, [quizId, userId], (performanceErr, performanceResult) => {
+                                            if (performanceErr) {
+                                                console.error('Error fetching performance:', performanceErr);
+                                                return reject(performanceErr);
+                                            }
+                                            topic.quizResult = performanceResult.length > 0 ? { score: performanceResult[0].score } : null;
+                                            resolve(topic);
+                                        });
+                                        
+                                    } else {
+                                        // No quiz found for the topic
+                                        topic.quizResult = null;
+                                        resolve(topic);
+                                    }
+                                });
+                            });
+                        })
+                        .catch(reject);
+                });
+            });
+        });
+        // Wait for all topic queries to complete
+        Promise.all(topicsWithMaterialsAndQuizResults)
+            .then(topics => {
+                res.status(200).json(topics);
+            })
+            .catch(err => {
+                res.status(500).json({ error: 'An error occurred while fetching topics with materials and quiz results' });
+            });
+    });
+});
+
 
 // Start server
 app.listen(PORT, () => {
