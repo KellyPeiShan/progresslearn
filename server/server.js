@@ -634,8 +634,8 @@ app.put('/updateAnnouncement/:courseId', (req, res) => {
     });
 });
 
-//end point for fetching student progress
-app.get('/studentProgress/:courseId', (req, res) => {
+//end point for fetching student progress by course
+app.get('/studentProgressByCourse/:courseId', (req, res) => {
     const courseId = req.params.courseId;
     
     // Query to select student progress and calculate max_progress
@@ -798,6 +798,36 @@ app.get('/studenttopics/:courseId', (req, res) => {
                 res.status(500).json({ error: 'An error occurred while fetching topics with materials and quiz results' });
             });
     });
+});
+
+// Fetch student progress with course id and user id
+app.get('/studentProgress/:courseId', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+    const userId = getUserIdFromToken(token); // Get user ID from token
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+    }
+    const courseId = req.params.courseId;
+
+    const query = `
+        SELECT 
+            progress, 
+            (SELECT COUNT(topic.course_id) FROM topic WHERE topic.course_id = ?) AS max_progress
+        FROM 
+            enrollment 
+        WHERE 
+            student_id = ? AND course_id = ?
+    `;
+
+    db.query(query, [courseId, userId, courseId], (err, result) => {
+        if (err) {
+            console.error('Error fetching topic information:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching topic information' });
+        }
+        const studentprogress = result[0];
+        res.status(200).json(studentprogress);
+    });
+
 });
 
 

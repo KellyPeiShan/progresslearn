@@ -6,6 +6,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import boxStyle from "../Components/boxstyle";
+import LinearProgress from '@mui/material/LinearProgress';
+import Typography from '@mui/material/Typography';
 
 
 export default function StudentDashboard () {
@@ -53,11 +55,11 @@ export default function StudentDashboard () {
         .catch(error => {
             console.error('Error fetching topics:', error);
         });
-    }, [id, cookies.token]); // Include cookies.token in the dependency array
+    }, [id, cookies.token]);
     
 
     //topic component
-    const TopicComponent = ({ topic }) => {
+    const TopicComponent = ({ topic , isLast  }) => {
       
         return (
           <div className="whitebox" style={{ padding: '10px', display: 'flex', marginBottom: '10px' }}>
@@ -76,7 +78,11 @@ export default function StudentDashboard () {
               {topic.quiz_count === 0 ? (
                     <p>No Quiz have been created for this topic.</p>
                 ) : (
-                    <p>You have scored {topic.quizResult ? topic.quizResult.score : 'N/A'} for this quiz</p>
+                    isLast ? (
+                        <button className="blendbtn" style={{marginTop:'1.6%'}}>Take Quiz</button>
+                      ) : (
+                        <p style={{marginTop:'2%'}}>You have scored {topic.quizResult.score}% for this quiz</p>
+                      )
                 )}
               </div>
             </div> 
@@ -100,7 +106,8 @@ export default function StudentDashboard () {
           console.error('Error downloading file:', error);
         }
       };
-
+    
+    //for fetching additional materials
     const [additionalmaterials,setAdditionalMaterials] = useState([]);
 
     //get additional material
@@ -121,15 +128,67 @@ export default function StudentDashboard () {
         });
     }, [id]);
 
+    //get student progress by course
+    const [progress, setProgress] = useState('');
+    var percentage;
+    if(progress.max_progress === 0){
+        percentage = 0;
+    }else{
+    percentage = (progress.progress / progress.max_progress) * 100;
+    }
+
+    useEffect(() => {
+        // Fetch topics for the given course ID
+        fetch(`http://localhost:5000/studentProgress/${id}`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${cookies.token}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch progress');
+            }
+            return response.json();
+        })
+        .then(data => {
+            setProgress(data);
+        })
+        .catch(error => {
+            console.error('Error fetching progress:', error);
+        });
+    }, [id, cookies.token]);
 
     return (
         <div>
-            <div className="home-header" >
+            <div className="home-header" style={{paddingBottom:'5px'}}>
             <a href="/StudentHome" className="backbtn">&lt; Back</a>
                <div  style={{paddingTop:"4%",paddingLeft:"10%",width:"80%"}}>
                 <h1 className="linecoursetitle">{course.course_title}</h1>
                </div>
             </div>
+            <div className="dashboarddiv">
+            <Box sx={{ display: 'flex', alignItems: 'center'}}>
+            <h3 style={{marginRight:'2%'}}>Progress:</h3>
+                <Box sx={{ width: '90%', mr: 1, borderRadius:30, overflow:'hidden'}}>
+                    <LinearProgress 
+                        variant="determinate" 
+                        value={percentage}
+                        sx={{
+                            height: 10, // Adjust the height of the progress bar
+                            bgcolor: '#F1EBFA', // Background color of the progress bar
+                            '& .MuiLinearProgress-bar': {
+                                bgcolor: '#8339ED', // Color of the progress bar
+                                borderRadius: 5, // Border radius of the progress bar
+                            },
+                        }}
+                    />
+                </Box>
+                <Box sx={{ minWidth: 35 }}>
+                    <Typography variant="body2" color="text.secondary">{`${Math.round(percentage)}%`}</Typography>
+                </Box>
+            </Box>
+        </div>
             <div>
                 {/* Announcement */}
                 <div className="dashboarddiv">
@@ -143,13 +202,13 @@ export default function StudentDashboard () {
                 {/* Topics */}
                 <div className="dashboarddiv">
                     <div style={{display:'flex'}}>
-                    <h2 className="dashboardheader"><u>Topic</u></h2>
+                    <h2 className="dashboardheader"><u>Learning Path</u></h2>
                     <button className="blendbtn" style={{marginTop: '1.7%', marginLeft: '2%'}}>Give Feedback</button>
                     </div>
                     <div>
-                        {topics.map(topic => (
-                            <TopicComponent key={topic.id} topic={topic} />
-                        ))}
+                    {topics.slice(0, progress.progress+1).map((topic,index) => (
+                        <TopicComponent key={topic.id} topic={topic} isLast={index === topics.slice(0, progress.progress+1).length - 1} />
+                    ))}
                     </div>
                 </div>
                 {/* Additional Material */}
