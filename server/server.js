@@ -706,7 +706,7 @@ app.post('/addQuiz', (req, res) => {
     });
   });
 
-// Fetch topics for the given course ID
+// Fetch topics for the given course ID for student
 app.get('/studenttopics/:courseId', (req, res) => {
     const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
     const userId = getUserIdFromToken(token); // Get user ID from token
@@ -830,6 +830,33 @@ app.get('/studentProgress/:courseId', (req, res) => {
 
 });
 
+//end point for submitting feedback
+app.post('/submitFeedback/:courseId', async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+        const userId = getUserIdFromToken(token); // Get user ID from token
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+        }
+
+        const { feedback } = req.body;
+        const courseId = req.params.courseId;
+
+        // Insert feedback into the database
+        const insertFeedbackQuery = 'INSERT INTO feedback (content, course_id, student_id) VALUES (?, ?, ?)';
+        db.query(insertFeedbackQuery, [feedback, courseId, userId], (err, result) => {
+            if (err) {
+                console.error('Error inserting feedback:', err);
+                return res.status(500).json({ error: 'An error occurred while inserting feedback' });
+            }
+            // Return success message
+            res.status(200).json({ message: 'Feedback submitted successfully' });
+        });
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        return res.status(500).json({ error: 'An error occurred while submitting feedback' });
+    }
+});
 
 // Start server
 app.listen(PORT, () => {

@@ -159,6 +159,35 @@ export default function StudentDashboard () {
         });
     }, [id, cookies.token]);
 
+    //for give feedback
+    const [feedbackmodal, setFeedbackModal] = useState(false);
+    const [feedback, setFeedback] = useState('');
+
+    const handleSubmitFeedback = async (e) => {
+        e.preventDefault();
+        if (window.confirm('Are you sure you want to submit this feedback?')) {
+            try {
+            const response = await fetch(`http://localhost:5000/submitFeedback/${id}`, {
+                method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${cookies.token}` // Assuming you have access to cookies
+                    },
+                    body: JSON.stringify({feedback})
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message); // Log success message
+                setFeedbackModal(false);//close feedback modal
+            } else {
+                console.error(data.error); // Log error message
+            }
+            } catch (error) {
+            console.error('Error submit feedback:', error); // Log any fetch errors
+            }
+        }
+      };
+
     return (
         <div>
             <div className="home-header" style={{paddingBottom:'5px'}}>
@@ -203,13 +232,22 @@ export default function StudentDashboard () {
                 <div className="dashboarddiv">
                     <div style={{display:'flex'}}>
                     <h2 className="dashboardheader"><u>Learning Path</u></h2>
-                    <button className="blendbtn" style={{marginTop: '1.7%', marginLeft: '2%'}}>Give Feedback</button>
+                    <button className="blendbtn" style={{marginTop: '1.7%', marginLeft: '2%'}} onClick={()=>setFeedbackModal(true)}>Give Feedback</button>
                     </div>
                     <div>
                     {topics.slice(0, progress.progress+1).map((topic,index) => (
                         <TopicComponent key={topic.id} topic={topic} isLast={index === topics.slice(0, progress.progress+1).length - 1} />
                     ))}
                     </div>
+                    <Modal open={feedbackmodal} onClose={()=>setFeedbackModal(false)}>
+                      <Box sx={boxStyle}>
+                          <h2 style={{marginTop:'0px'}}>Give Feedback</h2>
+                          <form>
+                              <textarea name="announcement" rows="4" cols="50" maxLength='1000' onChange={e => setFeedback(e.target.value)}></textarea><br></br><br></br>
+                              <button className='blendbtn' type="submit" style={{marginLeft:'43%'}} onClick={handleSubmitFeedback}>Done</button>
+                          </form>
+                      </Box>
+                  </Modal>
                 </div>
                 {/* Additional Material */}
                 <div className="dashboarddiv">

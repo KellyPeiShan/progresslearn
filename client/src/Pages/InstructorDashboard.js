@@ -283,7 +283,7 @@ export default function InstructorDashboard () {
         });
         const data = await response.json();
         if (response.ok) {
-          console.log(data.message); // Log success message
+          alert(data.message); // Log success message
           window.location.reload();
         } else {
           console.error(data.error); // Log error message
