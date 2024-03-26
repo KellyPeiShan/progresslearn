@@ -858,6 +858,25 @@ app.post('/submitFeedback/:courseId', async (req, res) => {
     }
 });
 
+//end point to fetch feedbacks
+app.get('/getFeedback/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    const query = `
+      SELECT feedback.feedback_id, feedback.content, user.full_name 
+      FROM feedback 
+      INNER JOIN user ON feedback.student_id = user.user_id 
+      WHERE feedback.course_id = ?`;
+    
+    db.query(query, [courseId], (err, feedbacks) => {
+      if (err) {
+        console.error('Error fetching feedback:', err);
+        return res.status(500).json({ error: 'An error occurred while fetching feedback' });
+      }
+      res.status(200).json(feedbacks);
+    });
+  });
+  
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
