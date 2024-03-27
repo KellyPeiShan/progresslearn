@@ -241,3 +241,15 @@ body{
   width: 38%;
   height: 30px;
 }
+
+.correct-question {
+  color: green;
+}
+
+.correct-selection{
+  color: rgb(43, 182, 48);
+}
+
+.incorrect {
+  color: red;
+}

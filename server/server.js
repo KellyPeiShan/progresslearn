@@ -911,7 +911,58 @@ app.get('/fetchQuiz/:topicId', (req, res) => {
       });
     });
   });
+
+  // Endpoint to handle the submission of quiz performance data
+app.post('/submitQuiz/:quizId', (req, res) => {
+
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+    const userId = getUserIdFromToken(token); // Get user ID from token
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+    }
+    const quizId = req.params.quizId;
+    const { percentage, incorrectlyAnswered } = req.body;
   
+    // Insert into quiz performance table
+    const insertQuery = 'INSERT INTO quizperformance (score, quiz_id, student_id) VALUES (?, ?, ?)';
+    db.query(insertQuery, [percentage, quizId, userId], (err, result) => {
+      if (err) {
+        console.error('Error inserting quiz performance:', err);
+        return res.status(500).json({ error: 'An error occurred while inserting quiz performance' });
+      }
+  
+      // Update incorrect_times column in the question table for incorrectly answered questions
+      const updateQuery = 'UPDATE question SET incorrect_times = incorrect_times + 1 WHERE question_id IN (?)';
+      db.query(updateQuery, [incorrectlyAnswered], (err, result) => {
+        if (err) {
+          console.error('Error updating incorrect times:', err);
+          return res.status(500).json({ error: 'An error occurred while updating incorrect times' });
+        }
+        res.status(200).json({ message: 'Quiz submitted successfully' });
+      });
+    });
+  });
+  
+  // Endpoint to update the progress column in enrollment table
+app.put('/updateProgress/:courseId', (req, res) => {
+    const { courseId } = req.params;
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+    const userId = getUserIdFromToken(token); // Get user ID from token
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+    }
+  
+    // Update progress in the enrollment table
+    const updateQuery = 'UPDATE enrollment SET progress = progress + 1 WHERE student_id = ? AND course_id = ?';
+    db.query(updateQuery, [userId, courseId], (err, result) => {
+      if (err) {
+        console.error('Error updating progress:', err);
+        return res.status(500).json({ error: 'An error occurred while updating progress' });
+      }
+      res.status(200).json({ message: 'Progress updated successfully' });
+    });
+  });
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
