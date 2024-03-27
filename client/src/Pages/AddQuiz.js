@@ -26,7 +26,6 @@ export default function AddQuiz () {
       }, [topicId]);
     
     const [questionNumber, setQuestionNumber] = useState('');
-    const [questionCount, setQuestionCount] = useState(0);
     const [questions, setQuestions] = useState([]);
     const [passingRate, setPassingRate] = useState('');
     const [setButtonClicked, setSetButtonClicked] = useState(false);
@@ -36,7 +35,6 @@ export default function AddQuiz () {
         if (window.confirm('Are you sure you want to reset the question number? This will reset all your current input.')) {
             const inputValue = parseInt(document.getElementById('questionCountInput').value);
             if (!isNaN(inputValue) && inputValue > 0) {
-            setQuestionCount(inputValue);
             setQuestions(Array.from({ length: inputValue }, () => ({ question: '', selections: ['', '', '', ''], answer: null })));
             setSetButtonClicked(true);
             } else {

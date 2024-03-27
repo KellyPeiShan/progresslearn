@@ -875,8 +875,43 @@ app.get('/getFeedback/:courseId', (req, res) => {
       res.status(200).json(feedbacks);
     });
   });
-  
 
+// Endpoint to fetch quiz and its questions based on the topicId
+app.get('/fetchQuiz/:topicId', (req, res) => {
+    const { topicId } = req.params;
+    
+    // Query to fetch quiz based on the topicId
+    const quizQuery = 'SELECT * FROM quiz WHERE topic_id = ?';
+    
+    db.query(quizQuery, [topicId], (err, quizResult) => {
+      if (err) {
+        console.error('Error fetching quiz:', err);
+        return res.status(500).json({ error: 'An error occurred while fetching quiz' });
+      }
+      
+      if (quizResult.length === 0) {
+        return res.status(404).json({ error: 'Quiz not found' });
+      }
+      
+      const quiz = quizResult[0];
+      
+      // Query to fetch questions for the quiz
+      const questionsQuery = 'SELECT * FROM question WHERE quiz_id = ?';
+    
+      db.query(questionsQuery, [quiz.quiz_id], (err, questionsResult) => {
+        if (err) {
+          console.error('Error fetching questions:', err);
+          return res.status(500).json({ error: 'An error occurred while fetching questions' });
+        }
+        
+        // Add questions array to the quiz object
+        quiz.questions = questionsResult;
+        
+        res.status(200).json(quiz);
+      });
+    });
+  });
+  
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
