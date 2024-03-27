@@ -1,7 +1,6 @@
 import {React, useState} from "react";
 import { useCookies } from "react-cookie";
 import {useNavigate} from "react-router-dom";
-import Typewriter from "typewriter-effect";
 import usernameicon from '../Images/usernameicon.png';
 import passwordicon from '../Images/Lock.png';
 

@@ -76,7 +76,7 @@ export default function StudentDashboard () {
               <div style={{display:'flex'}}>
               <h4 style={{marginRight:'1%'}}>Quiz:</h4>
               {topic.quiz_count === 0 ? (
-                    <p>No Quiz have been created for this topic.</p>
+                    <p style={{marginTop:'2%'}}>No Quiz have been created for this topic.</p>
                 ) : (
                     isLast ? (
                         <button className="blendbtn" style={{marginTop:'1.6%'}}>Take Quiz</button>
