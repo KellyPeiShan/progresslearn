@@ -79,7 +79,7 @@ export default function StudentDashboard () {
                     <p style={{marginTop:'2%'}}>No Quiz have been created for this topic.</p>
                 ) : (
                     isLast ? (
-                        <button className="blendbtn" style={{marginTop:'1.6%'}}>Take Quiz</button>
+                        <button className="blendbtn" style={{marginTop:'1.6%'}} onClick={()=>navigate(`/Student/TakeQuiz/${id}/${topic.topic_id}`)}>Take Quiz</button>
                       ) : (
                         <p style={{marginTop:'2%'}}>You have scored {topic.quizResult.score}% for this quiz</p>
                       )

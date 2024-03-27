@@ -678,10 +678,10 @@ app.get('/topicinfo/:topicId', (req, res) => {
 
 // end point for adding quiz
 app.post('/addQuiz', (req, res) => {
-    const { topicId, questionCount, questions, passingRate } = req.body;
+    const { topicId, questionNumber, questions, passingRate } = req.body;
   
     // Insert into quiz table
-    db.query('INSERT INTO quiz (topic_id, pass_rate, no_of_ques) VALUES (?, ?, ?)', [topicId, passingRate, questionCount], (err, result) => {
+    db.query('INSERT INTO quiz (topic_id, pass_rate, no_of_ques) VALUES (?, ?, ?)', [topicId, passingRate, questionNumber], (err, result) => {
       if (err) {
         console.error('Error adding quiz:', err);
         return res.status(500).json({ error: 'An error occurred while adding quiz' });
