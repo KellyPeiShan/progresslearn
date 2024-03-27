@@ -17,7 +17,7 @@ const InstructorProgress = ({ courseId }) => {
     //get student progress
     useEffect(() => {
         // Fetch student progress for the given course id
-        fetch(`http://localhost:5000/studentProgress/${courseId}`)
+        fetch(`http://localhost:5000/studentProgressByCourse/${courseId}`)
           .then(response => {
             if (!response.ok) {
               throw new Error('Failed to fetch student progress');

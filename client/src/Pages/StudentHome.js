@@ -229,7 +229,7 @@ export default function StudentHome () {
                 <p style={{fontSize:"25px", fontWeight:"500"}}>My Courses</p>
                 <div className="courselist">
                     {courses.map(course => (
-                     <CourseComponent key={course.course_id} course={course} />
+                     <CourseComponent key={course.course_id} course={course} onCourseClick={()=> navigate(`/Student/Dashboard/Course/${course.course_id}`)}/>
                     ))}
                 </div>
             </div>

@@ -634,8 +634,8 @@ app.put('/updateAnnouncement/:courseId', (req, res) => {
     });
 });
 
-//end point for fetching student progress
-app.get('/studentProgress/:courseId', (req, res) => {
+//end point for fetching student progress by course
+app.get('/studentProgressByCourse/:courseId', (req, res) => {
     const courseId = req.params.courseId;
     
     // Query to select student progress and calculate max_progress
@@ -703,6 +703,176 @@ app.post('/addQuiz', (req, res) => {
       });
   
       res.status(200).json({ message: 'Quiz added successfully' });
+    });
+  });
+
+// Fetch topics for the given course ID for student
+app.get('/studenttopics/:courseId', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+    const userId = getUserIdFromToken(token); // Get user ID from token
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+    }
+    const courseId = req.params.courseId;
+    const topicsQuery = 'SELECT * FROM topic WHERE course_id = ?';
+    db.query(topicsQuery, [courseId], (err, topics) => {
+        if (err) {
+            console.error('Error fetching topics:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching topics' });
+        }
+        // For each topic, fetch topic materials and count quizzes
+        const topicsWithMaterialsAndQuizResults = topics.map(topic => {
+            return new Promise((resolve, reject) => {
+                const materialsQuery = 'SELECT * FROM topicmaterial WHERE topic_id = ?';
+                db.query(materialsQuery, [topic.topic_id], (materialErr, materials) => {
+                    if (materialErr) {
+                        console.error('Error fetching materials:', materialErr);
+                        return reject(materialErr);
+                    }
+                    // For each topic material, fetch file information
+                    const materialsWithFiles = materials.map(material => {
+                        return new Promise((resolveMaterial, rejectMaterial) => {
+                            const fileQuery = 'SELECT * FROM files WHERE file_id = ?';
+                            db.query(fileQuery, [material.file_id], (fileErr, files) => {
+                                if (fileErr) {
+                                    console.error('Error fetching file:', fileErr);
+                                    return rejectMaterial(fileErr);
+                                }
+                                // Assuming there is only one file per material
+                                material.file = files[0];
+                                resolveMaterial(material);
+                            });
+                        });
+                    });
+                    // Wait for all file queries to complete
+                    Promise.all(materialsWithFiles)
+                        .then(materials => {
+                            topic.materials = materials;
+                            // Count quizzes for the current topic
+                            const quizCountQuery = 'SELECT COUNT(*) AS quiz_count FROM quiz WHERE topic_id = ?';
+                            db.query(quizCountQuery, [topic.topic_id], (quizErr, quizResult) => {
+                                if (quizErr) {
+                                    console.error('Error counting quizzes:', quizErr);
+                                    return reject(quizErr);
+                                }
+                                topic.quiz_count = quizResult[0].quiz_count;
+                                
+                                // Fetch quiz result for the current topic
+                                const selectQuizQuery = 'SELECT quiz_id FROM quiz WHERE topic_id = ?';
+                                db.query(selectQuizQuery, [topic.topic_id], (selectQuizErr, selectQuizResult) => {
+                                    if (selectQuizErr) {
+                                        console.error('Error selecting quiz:', selectQuizErr);
+                                        return reject(selectQuizErr);
+                                    }
+                                    
+                                    if (selectQuizResult.length > 0) {
+                                        const quizId = selectQuizResult[0].quiz_id;
+                                        const checkPerformanceQuery = 'SELECT MAX(score) AS score FROM quizperformance WHERE quiz_id = ? AND student_id = ?';
+                                        db.query(checkPerformanceQuery, [quizId, userId], (performanceErr, performanceResult) => {
+                                            if (performanceErr) {
+                                                console.error('Error fetching performance:', performanceErr);
+                                                return reject(performanceErr);
+                                            }
+                                            topic.quizResult = performanceResult.length > 0 ? { score: performanceResult[0].score } : null;
+                                            resolve(topic);
+                                        });
+                                        
+                                    } else {
+                                        // No quiz found for the topic
+                                        topic.quizResult = null;
+                                        resolve(topic);
+                                    }
+                                });
+                            });
+                        })
+                        .catch(reject);
+                });
+            });
+        });
+        // Wait for all topic queries to complete
+        Promise.all(topicsWithMaterialsAndQuizResults)
+            .then(topics => {
+                res.status(200).json(topics);
+            })
+            .catch(err => {
+                res.status(500).json({ error: 'An error occurred while fetching topics with materials and quiz results' });
+            });
+    });
+});
+
+// Fetch student progress with course id and user id
+app.get('/studentProgress/:courseId', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+    const userId = getUserIdFromToken(token); // Get user ID from token
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+    }
+    const courseId = req.params.courseId;
+
+    const query = `
+        SELECT 
+            progress, 
+            (SELECT COUNT(topic.course_id) FROM topic WHERE topic.course_id = ?) AS max_progress
+        FROM 
+            enrollment 
+        WHERE 
+            student_id = ? AND course_id = ?
+    `;
+
+    db.query(query, [courseId, userId, courseId], (err, result) => {
+        if (err) {
+            console.error('Error fetching topic information:', err);
+            return res.status(500).json({ error: 'An error occurred while fetching topic information' });
+        }
+        const studentprogress = result[0];
+        res.status(200).json(studentprogress);
+    });
+
+});
+
+//end point for submitting feedback
+app.post('/submitFeedback/:courseId', async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
+        const userId = getUserIdFromToken(token); // Get user ID from token
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
+        }
+
+        const { feedback } = req.body;
+        const courseId = req.params.courseId;
+
+        // Insert feedback into the database
+        const insertFeedbackQuery = 'INSERT INTO feedback (content, course_id, student_id) VALUES (?, ?, ?)';
+        db.query(insertFeedbackQuery, [feedback, courseId, userId], (err, result) => {
+            if (err) {
+                console.error('Error inserting feedback:', err);
+                return res.status(500).json({ error: 'An error occurred while inserting feedback' });
+            }
+            // Return success message
+            res.status(200).json({ message: 'Feedback submitted successfully' });
+        });
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        return res.status(500).json({ error: 'An error occurred while submitting feedback' });
+    }
+});
+
+//end point to fetch feedbacks
+app.get('/getFeedback/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    const query = `
+      SELECT feedback.feedback_id, feedback.content, user.full_name 
+      FROM feedback 
+      INNER JOIN user ON feedback.student_id = user.user_id 
+      WHERE feedback.course_id = ?`;
+    
+    db.query(query, [courseId], (err, feedbacks) => {
+      if (err) {
+        console.error('Error fetching feedback:', err);
+        return res.status(500).json({ error: 'An error occurred while fetching feedback' });
+      }
+      res.status(200).json(feedbacks);
     });
   });
   
