@@ -2,6 +2,14 @@ import {React, useState, useEffect} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import { useCookies } from "react-cookie";
 
+// Lehmer random number generator function
+function lehmerRandom(seed) {
+  return function() {
+    seed = (seed * 48271) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+}
+
 export default function TakeQuiz () {
 
     const { courseId, topicId } = useParams();
@@ -41,12 +49,33 @@ export default function TakeQuiz () {
             return response.json();
           })
         .then(data => {
-            setQuiz(data);
+            setQuiz(prevQuiz => {
+              // Select random questions using previous state
+              const selectedQuestions = selectRandomQuestions(data.questions, data.no_of_ques);
+              return { ...data, questions: selectedQuestions };
+          });
         })
         .catch(error => {
             console.error('Error fetching quiz and questions:', error);
         });
     }, [topicId]);
+
+    // Use Lehmer random number generator to select questions
+    const selectRandomQuestions = (questionPool, count) => {
+      const randomQuestions = [];
+      const rand = lehmerRandom(Math.floor(Math.random() * 2147483646)); // Seed with a random number
+      const usedIndices = new Set();
+      
+      // Select random questions
+      while (randomQuestions.length < count) {
+        const index = Math.floor(rand() * questionPool.length);
+        if (!usedIndices.has(index)) {
+          randomQuestions.push(questionPool[index]);
+          usedIndices.add(index);
+        }
+      }
+      return randomQuestions;
+    };
 
     //for handling submission of quiz
     const [score, setScore] = useState(0);
