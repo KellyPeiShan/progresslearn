@@ -2,6 +2,7 @@ import {React, useState, useEffect} from "react";
 import { useCookies } from "react-cookie";
 import {useNavigate, useParams} from "react-router-dom";
 import IconButton from '@mui/material/IconButton';
+import LockIcon from '@mui/icons-material/Lock';
 import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -238,6 +239,15 @@ export default function StudentDashboard () {
                     {topics.slice(0, progress.progress+1).map((topic,index) => (
                         <TopicComponent key={topic.id} topic={topic} isLast={index === topics.slice(0, progress.progress+1).length - 1} />
                     ))}
+                    <div className="whitebox" style={{ padding: '10px', display:'flex', justifyContent:'center' }}>
+                        {percentage === 100? (
+                            <h4>Congratulations, you have completed all topics for this course.</h4>
+                        ):(
+                            <Tooltip title="This content is locked">
+                                <LockIcon style={{fontSize:'40px',color:'grey',margin:'10px'}}/>
+                            </Tooltip>
+                        )}
+                    </div>
                     </div>
                     <Modal open={feedbackmodal} onClose={()=>setFeedbackModal(false)}>
                       <Box sx={boxStyle}>
