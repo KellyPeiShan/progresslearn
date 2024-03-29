@@ -355,7 +355,7 @@ app.post('/addTopic/:courseId', upload.array('files'), (req, res) => {
 // Fetch topics for the given course ID
 app.get('/topics/:courseId', (req, res) => {
     const courseId = req.params.courseId;
-    const topicsQuery = 'SELECT * FROM topic WHERE course_id = ?';
+    const topicsQuery = 'SELECT * FROM topic WHERE course_id = ? ORDER BY sequence ASC';
     db.query(topicsQuery, [courseId], (err, topics) => {
         if (err) {
             console.error('Error fetching topics:', err);
@@ -714,7 +714,7 @@ app.get('/studenttopics/:courseId', (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token is invalid
     }
     const courseId = req.params.courseId;
-    const topicsQuery = 'SELECT * FROM topic WHERE course_id = ?';
+    const topicsQuery = 'SELECT * FROM topic WHERE course_id = ? ORDER BY sequence ASC';
     db.query(topicsQuery, [courseId], (err, topics) => {
         if (err) {
             console.error('Error fetching topics:', err);
@@ -943,7 +943,7 @@ app.post('/submitQuiz/:quizId', (req, res) => {
     });
   });
   
-  // Endpoint to update the progress column in enrollment table
+// Endpoint to update the progress column in enrollment table
 app.put('/updateProgress/:courseId', (req, res) => {
     const { courseId } = req.params;
     const token = req.headers.authorization.split(' ')[1]; // Extract token from headers
@@ -962,6 +962,99 @@ app.put('/updateProgress/:courseId', (req, res) => {
       res.status(200).json({ message: 'Progress updated successfully' });
     });
   });
+
+// Endpoint to fetch overall quiz performance
+app.get('/quizPerformance/:courseId', (req, res) => {
+    try {
+      const courseId = req.params.courseId;
+  
+      // Fetch topicIds for the given courseId
+      db.query('SELECT topic_id, topic_title FROM topic WHERE course_id = ? ORDER BY sequence ASC', [courseId], (err, topics) => {
+        if (err) {
+          console.error('Error fetching topics:', err);
+          return res.status(500).json({ error: 'An error occurred while fetching topics' });
+        }
+  
+        // Initialize array to store overall performance
+        const quizPerformance = [];
+  
+        // Use map instead of forEach to preserve order
+        Promise.all(topics.map(topic => {
+          return new Promise((resolve, reject) => {
+            const topicId = topic.topic_id;
+            const topicTitle = topic.topic_title;
+            const topicData = {
+              topic_id: topicId,
+              topic_title: topicTitle,
+              quiz: null // Default to null
+            };
+  
+            // Fetch quizId for the current topicId
+            db.query('SELECT quiz_id FROM quiz WHERE topic_id = ?', [topicId], (err, quizzes) => {
+              if (err) {
+                console.error('Error fetching quiz:', err);
+                return reject({ error: 'An error occurred while fetching quiz' });
+              }
+  
+              // If a quiz exists for the current topic, fetch additional data
+              if (quizzes.length > 0) {
+                const quizId = quizzes[0].quiz_id;
+                // Fetch avg score for the current quizId
+                db.query('SELECT AVG(score) AS avg_score FROM quizperformance WHERE quiz_id = ?', [quizId], (err, avgScoreResult) => {
+                  if (err) {
+                    console.error('Error fetching average score:', err);
+                    return reject({ error: 'An error occurred while fetching average score' });
+                  }
+                  const avgScore = avgScoreResult[0].avg_score;
+  
+                  // Fetch max score for each student in the current quiz
+                  db.query('SELECT student_id, MAX(score) AS max_score FROM quizperformance WHERE quiz_id = ? GROUP BY student_id', [quizId], (err, studentPerformance) => {
+                    if (err) {
+                      console.error('Error fetching student performance:', err);
+                      return reject({ error: 'An error occurred while fetching student performance' });
+                    }
+  
+                    // Fetch question performance for the current quiz
+                    db.query('SELECT question, incorrect_times FROM question WHERE quiz_id = ?', [quizId], (err, questionPerformance) => {
+                      if (err) {
+                        console.error('Error fetching question performance:', err);
+                        return reject({ error: 'An error occurred while fetching question performance' });
+                      }
+  
+                      // Add quiz data to topic data
+                      topicData.quiz = {
+                        quiz_id: quizId,
+                        avgScore: avgScore,
+                        studentPerformance: studentPerformance,
+                        questionPerformance: questionPerformance
+                      };
+                      resolve(topicData);
+                    });
+                  });
+                });
+              } else {
+                // Resolve with topic data (without quiz data) if no quiz exists
+                resolve(topicData);
+              }
+            });
+          });
+        })).then(result => {
+          // Push the resolved data into the quizPerformance array
+          result.forEach(data => {
+            quizPerformance.push(data);
+          });
+          res.status(200).json(quizPerformance);
+        }).catch(error => {
+          console.error('Error fetching quiz performance:', error);
+          res.status(500).json({ error: 'Internal server error' });
+        });
+      });
+    } catch (error) {
+      console.error('Error fetching quiz performance:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
 
 // Start server
 app.listen(PORT, () => {
