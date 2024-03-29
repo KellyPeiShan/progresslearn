@@ -14,6 +14,7 @@ import InstructorHome from "./Pages/InstructorHome";
 import InstructorDashboard from "./Pages/InstructorDashboard";
 import AddQuiz from "./Pages/AddQuiz";
 import StudentDashboard from "./Pages/StudentDashboard";
+import TakeQuiz from "./Pages/TakeQuiz";
 
 const routerConfig = [
   {
@@ -43,6 +44,10 @@ const routerConfig = [
   {
     path:"/Student/Dashboard/Course/:id" ,
     element:<StudentDashboard />
+  },
+  {
+    path:"/Student/TakeQuiz/:courseId/:topicId" ,
+    element:<TakeQuiz />
   },
 ];
 

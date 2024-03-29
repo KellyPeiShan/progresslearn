@@ -1,5 +1,4 @@
 import {React, useState, useEffect} from "react";
-import { useCookies } from "react-cookie";
 import {useNavigate, useParams} from "react-router-dom";
 
 export default function AddQuiz () {
@@ -25,8 +24,8 @@ export default function AddQuiz () {
             console.error('Error fetching topic information:', error);
           });
       }, [topicId]);
-
-    const [questionCount, setQuestionCount] = useState(0);
+    
+    const [questionNumber, setQuestionNumber] = useState('');
     const [questions, setQuestions] = useState([]);
     const [passingRate, setPassingRate] = useState('');
     const [setButtonClicked, setSetButtonClicked] = useState(false);
@@ -36,7 +35,6 @@ export default function AddQuiz () {
         if (window.confirm('Are you sure you want to reset the question number? This will reset all your current input.')) {
             const inputValue = parseInt(document.getElementById('questionCountInput').value);
             if (!isNaN(inputValue) && inputValue > 0) {
-            setQuestionCount(inputValue);
             setQuestions(Array.from({ length: inputValue }, () => ({ question: '', selections: ['', '', '', ''], answer: null })));
             setSetButtonClicked(true);
             } else {
@@ -63,13 +61,16 @@ export default function AddQuiz () {
         e.preventDefault();
 
         if(passingRate === ''){
-            alert('Please set a passing rate for the quiz.')
+          alert('Please set a passing rate for the quiz.')
+        }
+        else if(questionNumber === ''){
+          alert('Please set number of questions to be answered for the quiz.')
         }
         else{
         // Prepare data to send to backend
         const FormData = {
           topicId: topicId,
-          questionCount: questionCount,
+          questionNumber: questionNumber,
           questions: questions,
           passingRate: passingRate
         };
@@ -104,8 +105,9 @@ export default function AddQuiz () {
                <div  style={{paddingTop:"4%",paddingLeft:"10%",width:"80%",paddingBottom:"0.2%"}}>
                  <h1>You are creating quiz for: {topicname}</h1>
                  <h2>Set passing rate:&nbsp;&nbsp;<input type="text" style={{width:"30px",height:"30px"}} onChange={(e) => setPassingRate(e.target.value)}></input>&nbsp;%</h2>
+                 <h2>Set number of questions to be answered:&nbsp;&nbsp;<input type="text" style={{width:"30px",height:"30px"}} onChange={(e) => setQuestionNumber(e.target.value)}></input>&nbsp;</h2>
                  <div style={{display:'flex'}}>
-                 <h2>Set number of questions:&nbsp;&nbsp;<input type="text" id="questionCountInput" style={{width:"30px",height:"30px"}}></input></h2>
+                 <h2>Set number of questions in pool:&nbsp;&nbsp;<input type="text" id="questionCountInput" style={{width:"30px",height:"30px"}}></input></h2>
                  <button className='blendbtn'style={{border:'1px solid black', marginLeft:'2%', marginTop:'1.8%',width:'50px'}} onClick={handleQuestionCountSubmit}>Set</button>
                  </div>
                </div>

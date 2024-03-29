@@ -1,5 +1,4 @@
 import {React, useState, useEffect} from "react";
-import { useCookies } from "react-cookie";
 import {useNavigate, useParams} from "react-router-dom";
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
