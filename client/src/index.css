@@ -253,3 +253,12 @@ body{
 .incorrect {
   color: red;
 }
+
+.column{
+  margin-left: 3%;
+}
+
+.column h4{
+  margin-top: 0;
+  margin-bottom: 0;
+}
