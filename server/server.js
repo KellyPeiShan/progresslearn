@@ -1008,7 +1008,11 @@ app.get('/quizPerformance/:courseId', (req, res) => {
                   const avgScore = avgScoreResult[0].avg_score;
   
                   // Fetch max score for each student in the current quiz
-                  db.query('SELECT student_id, MAX(score) AS max_score FROM quizperformance WHERE quiz_id = ? GROUP BY student_id', [quizId], (err, studentPerformance) => {
+                  db.query(`SELECT qp.student_id, u.full_name, MAX(qp.score) AS max_score 
+                            FROM quizperformance qp
+                            JOIN user u ON qp.student_id = u.user_id
+                            WHERE qp.quiz_id = ?
+                            GROUP BY qp.student_id`, [quizId], (err, studentPerformance) => {
                     if (err) {
                       console.error('Error fetching student performance:', err);
                       return reject({ error: 'An error occurred while fetching student performance' });

@@ -29,7 +29,6 @@ const InstructorPerformance = ({ courseId }) => {
         return response.json();
       })
       .then(data => {
-        console.log(data);
         setQuizPerformance(data);
       })
       .catch(error => {
@@ -44,7 +43,6 @@ const InstructorPerformance = ({ courseId }) => {
   
    // Filter out topics with null quiz data
    const topicsWithQuiz = quizPerformance.filter(topic => topic.quiz !== null);
-   console.log(topicsWithQuiz);
     
     let xAxisData = [];
     let yAxisData = [];
@@ -61,6 +59,71 @@ const InstructorPerformance = ({ courseId }) => {
       yAxisData = data.map(topic => topic.avgScore);
     }
 
+  const IndividualPerformanceComponent = ({ topic }) => {
+
+    const [showQuestionPerformance, setShowQuestionPerformance] = useState(false);
+    const [showStudentPerformance, setShowStudentPerformance] = useState(false);
+
+    const toggleQuestionPerformance = () => {
+      setShowQuestionPerformance(!showQuestionPerformance);
+    };
+    const toggleStudentPerformance = () => {
+      setShowStudentPerformance(!showStudentPerformance);
+    };
+
+    return(
+      <div className="whitebox" style={{padding:'10px',marginBottom:'20px'}}>
+          <h3 style={{borderBottom:'1px solid black', paddingBottom:'10px'}}>Topic:{topic.topic_title}</h3>  
+          {topic.quiz === null? (
+            <h4>No quiz performance available for this topic.</h4>
+          ):(
+            <div>
+              <div style={{display:'flex'}}>
+                <h4 style={{marginRight:'10px',marginTop:'0'}}>Question Performance Analysis</h4>
+                <u onClick={toggleQuestionPerformance} style={{color:'purple',cursor:'pointer'}}>{showQuestionPerformance ? 'Hide' : 'Show'}</u>
+              </div>
+              {showQuestionPerformance && (
+              <div style={{display:'flex',borderBottom:'1px solid black'}}>
+                <div className="column">
+                  <h4>Question</h4>
+                  {topic.quiz.questionPerformance.map(questionPerformance => (
+                    <p>{questionPerformance.question}</p>
+                  ))}
+                </div>
+                <div className="column">
+                  <h4>Number of times answered incorrectly</h4>
+                  {topic.quiz.questionPerformance.map(questionPerformance => (
+                    <p>{questionPerformance.incorrect_times}</p>
+                  ))}
+                </div>
+              </div>
+              )}
+              <div style={{display:'flex'}}>
+                <h4 style={{marginRight:'10px',marginTop:'0'}}>Student Performance Analysis</h4>
+                <u onClick={toggleStudentPerformance} style={{color:'purple',cursor:'pointer'}}>{showStudentPerformance ? 'Hide' : 'Show'}</u>
+              </div>
+              {showStudentPerformance && (
+              <div style={{display:'flex'}}>
+                <div className="column">
+                  <h4>Student</h4>
+                  {topic.quiz.studentPerformance.map(studentPerformance => (
+                    <p>{studentPerformance.full_name}</p>
+                  ))}
+                </div>
+                <div className="column">
+                  <h4>Max Score</h4>
+                  {topic.quiz.studentPerformance.map(studentPerformance => (
+                    <p>{studentPerformance.max_score}</p>
+                  ))}
+                </div>
+              </div>
+               )}
+            </div>
+          )}
+      </div>
+    );
+  };
+
   return(
     <div>
         <div className="dashboarddiv">
@@ -74,11 +137,12 @@ const InstructorPerformance = ({ courseId }) => {
                     stack: '',
                     yAxisKey: 'avgScore',
                     data: yAxisData,
+                    color:'#8339ED'
                   },
                   {
                     type: 'line',
                     yAxisKey: 'avgScore',
-                    color: 'red', // Adjust line color as needed
+                    color: '#D55FFF', // Adjust line color as needed
                     data: yAxisData,
                   },
                 ]}
@@ -106,9 +170,14 @@ const InstructorPerformance = ({ courseId }) => {
             </ChartContainer>
             ):(
               <h3>No Quiz Performance Available</h3>
-            )
-          }
-        </div>
+            )}
+          </div>
+       </div>
+       <div className="dashboarddiv">
+          <h2 className="dashboardheader"><u>Individual Quiz Performance</u></h2>
+          {quizPerformance.map(topic => (
+            <IndividualPerformanceComponent key={topic.topic_id} topic={topic} />
+          ))}
       </div>
     </div>
   );

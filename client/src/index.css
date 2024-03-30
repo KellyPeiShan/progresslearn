@@ -253,3 +253,7 @@ body{
 .incorrect {
   color: red;
 }
+
+.column{
+  margin-left: 3%;
+}
