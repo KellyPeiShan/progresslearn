@@ -74,7 +74,7 @@ const InstructorPerformance = ({ courseId }) => {
                 <u onClick={toggleQuestionPerformance} style={{color:'purple',cursor:'pointer'}}>{showQuestionPerformance ? 'Hide' : 'Show'}</u>
               </div>
               {showQuestionPerformance && (
-              <div style={{display:'flex',borderBottom:'1px solid black'}}>
+              <div style={{display:'flex',borderBottom:'1px solid black',marginBottom:'1%'}}>
                 <div className="column">
                   <h4>Question</h4>
                   {topic.quiz.questionPerformance.map(questionPerformance => (
