@@ -116,7 +116,7 @@ export default function SignUp () {
                     typewriter.changeDelay(25).typeString("Embark on your learning journey").start();
                 }}/>
                 </div>
-                <img src={learn} style={{width:"500px",height:"350px",position:"absolute",left:"40%",top:"60%"}}></img>
+                <img alt='' src={learn} style={{width:"500px",height:"350px",position:"absolute",left:"40%",top:"60%"}}></img>
             </div>
         </div>
     );

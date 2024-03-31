@@ -14,7 +14,6 @@ export default function TakeQuiz () {
 
     const { courseId, topicId } = useParams();
     const [topicname,setTopicName] = useState('');
-    const navigate = useNavigate();
      //get user id from token
      const [cookies] = useCookies(['token']);
 
