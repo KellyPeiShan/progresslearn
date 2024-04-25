@@ -171,9 +171,6 @@ app.get('/searchCourses', (req, res) => {
             return res.status(500).json({ error: 'An error occurred while searching for courses' });
         }
 
-        // Extract course IDs from the search results
-        const enrolledCourses = searchResults.map(course => course.course_id);
-
         // Execute the query to find enrolled courses for the user
         db.query(enrolledCoursesQuery, [userId], (enrollErr, enrolledCourseIds) => {
             if (enrollErr) {
@@ -200,7 +197,7 @@ app.post('/enroll', (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
   
-    const courseId = req.body.courseId; // Assuming courseId is sent in the request body
+    const courseId = req.body.courseId; 
   
     const enrollQuery = 'INSERT INTO enrollment (student_id, course_id, progress) VALUES (?, ?, ?)';
     const values = [userId, courseId, 0];
@@ -415,7 +412,7 @@ app.get('/topics/:courseId', (req, res) => {
 });
 
 
-// Route handler to download files
+// Endpoint to download files
 app.get('/downloadFile/:fileId', (req, res) => {
     const fileId = req.params.fileId;
 

@@ -184,7 +184,7 @@ export default function TakeQuiz () {
                     <div key={question.question_id}>
                         <h3 id={`question_${question.question_id}_question`}>{index + 1}. {question.question}</h3>
                         <label id={`question_${question.question_id}_1`}>
-                        <input type="radio" name={`question_${question.question_id}`} value='1' />
+                        <input type="radio" name={`question_${question.question_id}`} value='1' required/>
                         {question.selection_1}
                         </label><br /><br />
                         <label id={`question_${question.question_id}_2`}>
