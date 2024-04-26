@@ -20,11 +20,12 @@ export default function SignUp () {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const [cookies, setCookie] = useCookies(['token']); // Initialize cookie state
+    const [cookies, setCookie] = useCookies(['token']); // Initialise cookie state
     const navigate = useNavigate();
     
     const handleSubmit = async (e) => {
         e.preventDefault();
+        //check if confirm password and password matches
         if (formData.password !== confirmPassword) {
             alert('Passwords do not match!');
             return;
@@ -56,7 +57,7 @@ export default function SignUp () {
         }
     } catch (error) {
         console.error('Error:', error);
-        // Handle network or server errors
+        // Alert error
         alert('An error occurred. Please try again later.');
     }
     };

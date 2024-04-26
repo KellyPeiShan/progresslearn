@@ -42,7 +42,7 @@ const InstructorProgress = ({ courseId }) => {
                             variant="determinate" 
                             value={percentage} 
                             sx={{
-                                height: 10, // Adjust the height of the progress bar
+                                height: 10, // Height of the progress bar
                                 bgcolor: '#F1EBFA', // Background color of the progress bar
                                 '& .MuiLinearProgress-bar': {
                                     bgcolor: '#8339ED', // Color of the progress bar

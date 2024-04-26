@@ -11,7 +11,7 @@ const InstructorPerformance = ({ courseId }) => {
 
   //get quiz performance
   useEffect(() => {
-    // Fetch additional material for the given course ID
+    // Fetch quiz performance for the given course ID
     fetch(`http://localhost:5000/quizPerformance/${courseId}`)
       .then(response => {
         if (!response.ok) {
@@ -133,7 +133,7 @@ const InstructorPerformance = ({ courseId }) => {
                   {
                     type: 'line',
                     yAxisKey: 'avgScore',
-                    color: '#D55FFF', // Adjust line color as needed
+                    color: '#D55FFF', 
                     data: yAxisData,
                   },
                 ]}

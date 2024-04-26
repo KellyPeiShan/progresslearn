@@ -128,7 +128,7 @@ export default function TakeQuiz () {
               return response.json();
             })
             .then(data => {
-              alert(data.message); // Log success message
+              alert(data.message); // Alert success message
             })
             .catch(error => {
               console.error('Error submitting quiz:', error);
@@ -141,6 +141,7 @@ export default function TakeQuiz () {
         }
       };
 
+      //endpoint to update progress if student pass the test
       const handleUpdateProgress = async (e) => {
         e.preventDefault();
         try {
@@ -148,7 +149,7 @@ export default function TakeQuiz () {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${cookies.token}` // Assuming you have access to cookies
+              Authorization: `Bearer ${cookies.token}`
             }
           });
           const data = await response.json();

@@ -40,7 +40,7 @@ export default function Login () {
             }
         } catch (error) {
             console.error('Error:', error);
-            // Handle network or server errors
+            // Alert error
             alert('An error occurred. Please try again later.');
         }
     };

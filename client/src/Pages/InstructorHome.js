@@ -17,7 +17,7 @@ export default function InstructorHome () {
     const [fullname, setFullName] = useState('');
     const [courses, setCourses] = useState([]);
     const [cookies] = useCookies(['token']);
-
+    //fetch instructor info
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
@@ -29,8 +29,8 @@ export default function InstructorHome () {
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    setFullName(data.fullname); //set user info received from server
-                    setCourses(data.courses);//set course info received from server
+                    setFullName(data.fullname); 
+                    setCourses(data.courses);
                 } else {
                     console.error('Error fetching user information:', data.error);
                 }
@@ -93,7 +93,6 @@ export default function InstructorHome () {
             // Clear the authentication token cookie
             document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         
-            // Redirect to logout endpoint or any other logout actions
             navigate('/'); // Redirect to login page
         }
     };

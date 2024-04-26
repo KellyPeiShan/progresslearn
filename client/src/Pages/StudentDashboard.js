@@ -28,9 +28,8 @@ export default function StudentDashboard () {
           })
           .catch(error => {
             console.error('Error fetching course:', error);
-            // Handle error
           });
-      }, [id]); // Execute the effect whenever id changes
+      }, [id]);
 
     //for fetch topic info
     const [topics, setTopics] = useState([]);
@@ -138,7 +137,7 @@ export default function StudentDashboard () {
     }
 
     useEffect(() => {
-        // Fetch topics for the given course ID
+        // Fetch student progress using id
         fetch(`http://localhost:5000/studentProgress/${id}`, {
             method: 'GET',
             headers: {
@@ -171,13 +170,13 @@ export default function StudentDashboard () {
                 method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        Authorization: `Bearer ${cookies.token}` // Assuming you have access to cookies
+                        Authorization: `Bearer ${cookies.token}`
                     },
                     body: JSON.stringify({feedback})
             });
             const data = await response.json();
             if (response.ok) {
-                alert(data.message); // Log success message
+                alert(data.message); // Alert success message
                 setFeedbackModal(false);//close feedback modal
             } else {
                 console.error(data.error); // Log error message

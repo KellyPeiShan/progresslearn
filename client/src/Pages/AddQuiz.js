@@ -74,7 +74,7 @@ export default function AddQuiz () {
           questions: questions,
           passingRate: passingRate
         };
-
+        // Send quiz content to server
         try {
             const response = await fetch(`http://localhost:5000/addQuiz`, {
                 method: 'POST',

@@ -166,7 +166,6 @@ export default function StudentHome () {
             // Clear the authentication token cookie
             document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         
-            // Redirect to logout endpoint or any other logout actions
             navigate('/'); // Redirect to login page
         }
     };

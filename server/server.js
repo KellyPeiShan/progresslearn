@@ -268,6 +268,7 @@ app.post('/createCourse', (req, res) => {
     });
 });
 
+// Endpoint to fetch course information
 app.get('/courseinfo/:id', (req, res) => {
     const courseId = req.params.id;
   
@@ -281,7 +282,7 @@ app.get('/courseinfo/:id', (req, res) => {
         return res.status(404).json({ error: 'Course not found' });
       }
   
-      const course = result[0]; //query returns only one course
+      const course = result[0]; //returns only one course
       res.status(200).json(course);
     });
   });
@@ -289,7 +290,6 @@ app.get('/courseinfo/:id', (req, res) => {
 // Define storage for uploaded files
 const storage = multer.memoryStorage(); // Store files in memory
   
-
 // Initialize multer upload
 const upload = multer({ storage: storage });
 
@@ -375,7 +375,6 @@ app.get('/topics/:courseId', (req, res) => {
                                     console.error('Error fetching file:', fileErr);
                                     return rejectMaterial(fileErr);
                                 }
-                                // Assuming there is only one file per material
                                 material.file = files[0];
                                 resolveMaterial(material);
                             });
@@ -506,7 +505,6 @@ app.get('/getAM/:courseId', (req, res) => {
                         console.error('Error fetching file:', fileErr);
                         return reject(fileErr);
                     }
-                    // Assuming there is only one file per additional material
                     material.file = files[0];
                     resolve(material);
                 });
@@ -524,7 +522,7 @@ app.get('/getAM/:courseId', (req, res) => {
     });
 });
 
-// Backend code to handle deletion of additional material
+// Endpoint to handle deletion of additional material
 app.delete('/deleteAM/:materialId', (req, res) => {
     const materialId = req.params.materialId;
     
@@ -583,7 +581,7 @@ app.post('/addTM/:topicId', upload.array('files'), (req, res) => {
     
 });
 
-// Backend code to handle deletion of topic material
+// Endpoint to handle deletion of topic material
 app.delete('/deleteTM/:materialId', (req, res) => {
     const materialId = req.params.materialId;
     
@@ -606,7 +604,7 @@ app.delete('/deleteTM/:materialId', (req, res) => {
     });
   });
 
-// Backend code to handle updating announcement
+// Endpoint to handle updating announcement
 app.put('/updateAnnouncement/:courseId', (req, res) => {
     const { courseId } = req.params;
     const { announcement } = req.body;
@@ -630,7 +628,7 @@ app.put('/updateAnnouncement/:courseId', (req, res) => {
     });
 });
 
-//end point for fetching student progress by course
+// End point for fetching student progress by course
 app.get('/studentProgressByCourse/:courseId', (req, res) => {
     const courseId = req.params.courseId;
     
@@ -655,7 +653,7 @@ app.get('/studentProgressByCourse/:courseId', (req, res) => {
     });
 });
 
-//end point for fetching topic info
+// End point for fetching topic info
 app.get('/topicinfo/:topicId', (req, res) => {
     const topicId = req.params.topicId;
 
@@ -734,7 +732,6 @@ app.get('/studenttopics/:courseId', (req, res) => {
                                     console.error('Error fetching file:', fileErr);
                                     return rejectMaterial(fileErr);
                                 }
-                                // Assuming there is only one file per material
                                 material.file = files[0];
                                 resolveMaterial(material);
                             });

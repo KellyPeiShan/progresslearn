@@ -30,7 +30,7 @@ export default function InstructorDashboard () {
             console.error('Error fetching course:', error);
             // Handle error
           });
-      }, [id]); // Execute the effect whenever id changes
+      }, [id]); 
 
     //for tab
     const [value, setValue] = useState(0);
@@ -282,13 +282,13 @@ export default function InstructorDashboard () {
         });
         const data = await response.json();
         if (response.ok) {
-          alert(data.message); // Log success message
+          alert(data.message); 
           window.location.reload();
         } else {
-          console.error(data.error); // Log error message
+          console.error(data.error); 
         }
       } catch (error) {
-        console.error('Error update announcement:', error); // Log any fetch errors
+        console.error('Error update announcement:', error); 
       }
     };
 
